@@ -4,7 +4,7 @@ from sqlmodel import Session, create_engine
 # 1. Define the Database URL
 # For local development, we use SQLite. 
 # Changing this to PostgreSQL or MySQL later requires changing only this single string.
-DATABASE_URL = "sqlite:///./courses.db"
+DATABASE_URL = "sqlite:///./backend/courses.db"
 
 # 2. Create the SQLModel Engine
 # 'connect_args={"check_same_thread": False}' is uniquely required for SQLite.

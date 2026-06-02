@@ -2,12 +2,13 @@ import json
 import sys
 from pathlib import Path
 from sqlmodel import Session
-from database import engine
-from models import College, Department, Course, Section
-from schemas import SectionData
 
 # Ensure Python can find your models and schemas from the root directory
 sys.path.append(str(Path(__file__).resolve().parent.parent))
+
+from database import engine
+from models import College, Department, Course, Section
+from schemas import SectionData
 
 def load_data_to_db(json_file_path: str | Path):
     path = Path(json_file_path)
@@ -66,6 +67,7 @@ def load_data_to_db(json_file_path: str | Path):
         sections_to_insert.append(
             Section(
                 crn=item.crn,
+                section_number=item.section_number,
                 course_id=item.course_id,
                 teacher=item.teacher,
                 gender=item.gender.value,
