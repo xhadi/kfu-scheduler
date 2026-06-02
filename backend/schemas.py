@@ -15,6 +15,7 @@ class GenderEnum(str, Enum):
 
 class SectionData(BaseModel):
     crn: int = Field(alias="CRN")
+    section_number: str = Field(alias="Division")
     teacher: str = Field(alias="Teacher")
     college_id: str = "unknown"
     dept_id: str = Field(alias="DEPTCode")

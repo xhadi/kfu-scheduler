@@ -25,13 +25,14 @@ CREATE TABLE course (
 -- 4. Sections Table (Lowest Level / Most Granular)
 CREATE TABLE section (
     crn INTEGER,                        -- e.g., 53210
+    section_number VARCHAR(10) NOT NULL, -- e.g., "01"
     course_id VARCHAR(20) NOT NULL,     
     teacher VARCHAR(255) NOT NULL,      -- e.g., 'مروان محمد امين الحاج'
     gender VARCHAR(10) NOT NULL CHECK (gender IN ('male', 'female')),
     start_time TIME NOT NULL,           -- e.g., '09:00:00'
     end_time TIME NOT NULL,             -- e.g., '10:15:00'
     days VARCHAR(20) NOT NULL,          -- e.g., 'ح   خ'
-    PRIMARY KEY (crn, course_id),
+    PRIMARY KEY (crn, section_number, course_id),
     FOREIGN KEY (course_id) REFERENCES course(id) ON DELETE CASCADE
 );
 

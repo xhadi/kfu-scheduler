@@ -44,9 +44,10 @@ class Course(SQLModel, table=True):
 
 class Section(SQLModel, table=True):
     crn: int = Field(primary_key=True) # Example: 53210
+    section_number: str = Field(primary_key=True)  # Example: "01"
     course_id: str = Field(foreign_key="course.id", primary_key=True)
     teacher: str                       # Example: "مروان محمد امين الحاج"
-    gender: str                        # Storing as standard text ('male' or 'female')
+    gender: str                        
     
     # We will populate these using the parser
     start_time: time
