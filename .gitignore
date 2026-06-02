@@ -28,12 +28,13 @@ Thumbs.db
 backend/venv/
 backend/.venv/
 backend/env/
-backend/__pycache__/
-backend/*.pyc
-backend/*.pyo
+backend/scraper/data/
 backend/*.db
 backend/*.sqlite3
 backend/.env
+# Python caching is made GLOBAL
+__pycache__/
+*.py[cod]
 
 # ==========================================
 # Frontend (Node / React) Rules
