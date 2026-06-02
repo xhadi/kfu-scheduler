@@ -1,7 +1,45 @@
-# OS files
+# ==========================================
+# VS Code Rules
+# ==========================================
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+.history/
+
+# ==========================================
+# Global / OS Rules
+# ==========================================
 .DS_Store
 Thumbs.db
+*.log
 
-# Firebase configuration caches
+# ==========================================
+# Firebase Rules
+# ==========================================
 .firebase/
 *ui.log
+
+# ==========================================
+# Backend (Python / FastAPI / SQLite) Rules
+# ==========================================
+backend/venv/
+backend/.venv/
+backend/env/
+backend/__pycache__/
+backend/*.pyc
+backend/*.pyo
+backend/*.db
+backend/*.sqlite3
+backend/.env
+
+# ==========================================
+# Frontend (Node / React) Rules
+# ==========================================
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/.env
+frontend/.env.local
