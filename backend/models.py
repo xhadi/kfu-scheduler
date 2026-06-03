@@ -45,10 +45,10 @@ class Course(SQLModel, table=True):
 class Section(SQLModel, table=True):
     crn: int = Field(primary_key=True) # Example: 53210
     section_number: str = Field(primary_key=True)  # Example: "01"
-    section_type: str                       # Example: "نظري"
-    section_status: str                     # Example: "متاح"
+    section_type: str = Field(nullable = True)         # Example: "نظري"
+    section_status: str = Field(nullable = True)       # Example: "متاح"
     course_id: str = Field(foreign_key="course.id", primary_key=True)
-    teacher: str                       # Example: "مروان محمد امين الحاج"
+    teacher: str = Field(nullable = True)                      # Example: "مروان محمد امين الحاج"
     gender: str                        
     
     # We will populate these using the parser

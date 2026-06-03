@@ -1,10 +1,11 @@
 from collections.abc import Generator
+from pathlib import Path
 from sqlmodel import Session, create_engine
 
 # 1. Define the Database URL
-# For local development, we use SQLite. 
-# Changing this to PostgreSQL or MySQL later requires changing only this single string.
-DATABASE_URL = "sqlite:///./backend/courses.db"
+# We use a path relative to this file to ensure it works regardless of where the app is started.
+BASE_DIR = Path(__file__).resolve().parent
+DATABASE_URL = f"sqlite:///{BASE_DIR}/courses.db"
 
 # 2. Create the SQLModel Engine
 # 'connect_args={"check_same_thread": False}' is uniquely required for SQLite.

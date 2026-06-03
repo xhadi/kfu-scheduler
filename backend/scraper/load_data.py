@@ -69,6 +69,8 @@ def load_data_to_db(json_file_path: str | Path):
                 crn=item.crn,
                 section_number=item.section_number,
                 course_id=item.course_id,
+                section_type=item.section_type,
+                section_status=item.section_status,
                 teacher=item.teacher,
                 gender=item.gender.value,
                 start_time=item.start_time,
