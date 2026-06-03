@@ -18,11 +18,11 @@ export function ScheduleProvider({ children }) {
     let options = results.options
 
     if (filters.daysOff.length > 0) {
-      const KEY_TO_ARABIC = { sun: 'الأحد', mon: 'الاثنين', tue: 'الثلاثاء', wed: 'الأربعاء', thu: 'الخميس' }
-      const excludedArabicDays = filters.daysOff.map(d => KEY_TO_ARABIC[d])
+      const KEY_TO_ABBREV = { sat: 'س', sun: 'ح', mon: 'ن', tue: 'ث', wed: 'ر', thu: 'خ' }
+      const excludedAbbrevs = filters.daysOff.map(d => KEY_TO_ABBREV[d])
       options = options.filter(schedule =>
         !schedule.sections.some(sec =>
-          sec.days.some(day => excludedArabicDays.includes(day))
+          sec.days.some(day => excludedAbbrevs.includes(day.trim()))
         )
       )
     }

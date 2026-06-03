@@ -4,6 +4,7 @@ import { useSchedule } from '../../contexts/ScheduleContext'
 import { Filter, X } from 'lucide-react'
 
 const DAYS = [
+  { key: 'sat', ar: 'السبت', en: 'Sat' },
   { key: 'sun', ar: 'الأحد', en: 'Sun' },
   { key: 'mon', ar: 'الاثنين', en: 'Mon' },
   { key: 'tue', ar: 'الثلاثاء', en: 'Tue' },
