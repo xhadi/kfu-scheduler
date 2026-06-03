@@ -2,8 +2,8 @@ import { useMemo } from 'react'
 import { useLanguage } from '../../contexts/LanguageContext'
 import TimetableBlock from './TimetableBlock'
 
-const DAYS = ['sat', 'sun', 'mon', 'tue', 'wed', 'thu']
-const ABBREV_TO_KEY = { 'س': 'sat', 'ح': 'sun', 'ن': 'mon', 'ث': 'tue', 'ر': 'wed', 'خ': 'thu' }
+const DAYS = ['sun', 'mon', 'tue', 'wed', 'thu']
+const ABBREV_TO_KEY = { 'ح': 'sun', 'ن': 'mon', 'ث': 'tue', 'ر': 'wed', 'خ': 'thu' }
 const TIME_SLOTS = Array.from({ length: 14 }, (_, i) => i + 7)
 
 export default function TimetableView({ schedule, courseColorMap }) {
@@ -12,6 +12,7 @@ export default function TimetableView({ schedule, courseColorMap }) {
   const sectionsByDay = useMemo(() => {
     const map = {}
     DAYS.forEach(d => { map[d] = [] })
+    if (!schedule || !schedule.sections) return map
     schedule.sections.forEach(sec => {
       sec.days.forEach(dayAbbrev => {
         const dayKey = ABBREV_TO_KEY[dayAbbrev.trim()]
@@ -38,11 +39,10 @@ export default function TimetableView({ schedule, courseColorMap }) {
   const getTimeHeight = (startStr, endStr) => {
     const start = parseTime(startStr)
     const end = parseTime(endStr)
-    return Math.max(((end - start) / 14) * 100, 2)
+    return Math.max(((end - start) / 14) * 100, 3)
   }
 
   const dayLabels = {
-    sat: t('sat'),
     sun: t('sun'),
     mon: t('mon'),
     tue: t('tue'),
@@ -52,8 +52,8 @@ export default function TimetableView({ schedule, courseColorMap }) {
 
   return (
     <div className="overflow-x-auto mt-4" dir="ltr">
-      <div className="min-w-[800px] bg-white dark:bg-gray-900 rounded-lg border border-border dark:border-border-dark">
-        <div className="grid grid-cols-7 border-b border-border dark:border-border-dark bg-gray-50 dark:bg-gray-800">
+      <div className="min-w-[700px] bg-white dark:bg-gray-900 rounded-lg border border-border dark:border-border-dark">
+        <div className="grid grid-cols-6 border-b border-border dark:border-border-dark bg-gray-50 dark:bg-gray-800">
           <div className="p-2 text-xs text-center font-medium text-gray-500 border-e border-border dark:border-border-dark">
             {t('time')}
           </div>
@@ -64,12 +64,12 @@ export default function TimetableView({ schedule, courseColorMap }) {
           ))}
         </div>
 
-        <div className="relative grid grid-cols-7" style={{ height: `${TIME_SLOTS.length * 48}px` }}>
+        <div className="relative grid grid-cols-6" style={{ height: `${TIME_SLOTS.length * 56}px` }}>
           <div className="relative border-e border-border dark:border-border-dark">
             {TIME_SLOTS.map(hour => (
               <div
                 key={hour}
-                className="absolute w-full text-[10px] text-gray-400 text-end pe-1 -translate-y-1/2"
+                className="absolute w-full text-xs text-gray-400 text-end pe-1 -translate-y-1/2"
                 style={{ top: `${((hour - 7) / 14) * 100}%` }}
               >
                 {String(hour).padStart(2, '0')}:00

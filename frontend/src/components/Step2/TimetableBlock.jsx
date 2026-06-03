@@ -14,15 +14,15 @@ export default function TimetableBlock({ section, colorIndex }) {
 
   return (
     <div
-      className={`h-full rounded-md border-l-4 p-1.5 text-[11px] leading-snug overflow-hidden ${color}`}
+      className={`h-full rounded-md border-l-4 p-2 text-sm leading-tight overflow-hidden ${color}`}
       dir="rtl"
     >
-      <div className="font-bold truncate">{section.course_title || section.course_id}</div>
-      <div className="truncate opacity-80">{section.teacher}</div>
-      <div className="opacity-70">
+      <div className="font-bold truncate text-sm">{section.course_title || section.course_id}</div>
+      <div className="truncate opacity-80 text-xs">{section.teacher}</div>
+      <div className="opacity-70 text-xs">
         {section.start_time} - {section.end_time}
       </div>
-      <div className="opacity-70">
+      <div className="opacity-70 text-xs">
         CRN: {section.crn} | #{section.section_number}
       </div>
     </div>
