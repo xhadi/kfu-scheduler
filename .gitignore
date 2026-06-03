@@ -30,17 +30,23 @@ backend/.venv/
 backend/env/
 backend/scraper/data/
 backend/*.db
-backend/*.sqlite3
+!backend/courses.db
 backend/.env
 # Python caching is made GLOBAL
 __pycache__/
 *.py[cod]
 
 # ==========================================
-# Frontend (Node / React) Rules
+# Frontend (Node / React / Vite) Rules
 # ==========================================
 frontend/node_modules/
 frontend/dist/
 frontend/build/
 frontend/.env
 frontend/.env.local
+
+# ==========================================
+# Docs
+# ==========================================
+docs/
+AGENTS.md
