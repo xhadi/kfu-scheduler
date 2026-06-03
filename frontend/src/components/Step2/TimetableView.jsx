@@ -5,7 +5,7 @@ import TimetableBlock from './TimetableBlock'
 const DAYS = ['sun', 'mon', 'tue', 'wed', 'thu']
 const ABBREV_TO_KEY = { 'ح': 'sun', 'ن': 'mon', 'ث': 'tue', 'ر': 'wed', 'خ': 'thu' }
 const TIME_SLOTS = Array.from({ length: 14 }, (_, i) => i + 7)
-const ROW_HEIGHT = 64
+const ROW_HEIGHT = 48
 
 export default function TimetableView({ schedule, courseColorMap }) {
   const { t } = useLanguage()
@@ -53,7 +53,7 @@ export default function TimetableView({ schedule, courseColorMap }) {
 
   return (
     <div className="overflow-x-auto mt-4" dir="ltr">
-      <div className="bg-white dark:bg-gray-900 rounded-lg border border-border dark:border-border-dark" style={{ minWidth: '800px' }}>
+      <div className="bg-white dark:bg-gray-900 rounded-lg border border-border dark:border-border-dark" style={{ minWidth: '960px' }}>
         <div className="grid grid-cols-6 border-b border-border dark:border-border-dark bg-gray-50 dark:bg-gray-800">
           <div className="p-2 text-sm text-center font-medium text-gray-500 border-e border-border dark:border-border-dark">
             {t('time')}
@@ -67,15 +67,19 @@ export default function TimetableView({ schedule, courseColorMap }) {
 
         <div className="relative grid grid-cols-6" style={{ height: `${TIME_SLOTS.length * ROW_HEIGHT}px` }}>
           <div className="relative border-e border-border dark:border-border-dark">
-            {TIME_SLOTS.map(hour => (
-              <div
-                key={hour}
-                className="absolute w-full text-xs text-gray-400 text-end pe-2 -translate-y-1/2"
-                style={{ top: `${((hour - 7) / 14) * 100}%` }}
-              >
-                {String(hour).padStart(2, '0')}:00
-              </div>
-            ))}
+            {TIME_SLOTS.map(hour => {
+              const h12 = hour > 12 ? hour - 12 : hour
+              const suffix = hour >= 12 ? 'PM' : 'AM'
+              return (
+                <div
+                  key={hour}
+                  className="absolute w-full text-xs text-gray-400 text-end pe-2 -translate-y-1/2"
+                  style={{ top: `${((hour - 7) / 14) * 100}%` }}
+                >
+                  {h12}:00 {suffix}
+                </div>
+              )
+            })}
           </div>
 
           {DAYS.map(day => (
