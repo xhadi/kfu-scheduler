@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback } from 'react'
+import { createContext, useContext, useState, useCallback, useMemo } from 'react'
 import { generateSchedules } from '../api/scheduleApi'
 
 const ScheduleContext = createContext()
@@ -12,6 +12,38 @@ export function ScheduleProvider({ children }) {
   const [currentScheduleIndex, setCurrentScheduleIndex] = useState(0)
   const [step, setStep] = useState(1)
   const [filters, setFilters] = useState({ daysOff: [], instructor: '', crn: '' })
+
+  const filteredOptions = useMemo(() => {
+    if (!results) return []
+    let options = results.options
+
+    if (filters.daysOff.length > 0) {
+      const KEY_TO_ARABIC = { sun: 'الأحد', mon: 'الاثنين', tue: 'الثلاثاء', wed: 'الأربعاء', thu: 'الخميس' }
+      const excludedArabicDays = filters.daysOff.map(d => KEY_TO_ARABIC[d])
+      options = options.filter(schedule =>
+        !schedule.sections.some(sec =>
+          sec.days.some(day => excludedArabicDays.includes(day))
+        )
+      )
+    }
+
+    if (filters.instructor) {
+      const q = filters.instructor.toLowerCase()
+      options = options.filter(schedule =>
+        schedule.sections.some(sec =>
+          sec.teacher && sec.teacher.toLowerCase().includes(q)
+        )
+      )
+    }
+
+    if (filters.crn) {
+      options = options.filter(schedule =>
+        schedule.sections.some(sec => String(sec.crn).includes(filters.crn))
+      )
+    }
+
+    return options
+  }, [results, filters])
 
   const addCourse = useCallback((course) => {
     setSelectedCourses(prev => {
@@ -42,6 +74,9 @@ export function ScheduleProvider({ children }) {
   const goBack = useCallback(() => {
     setStep(1)
     setError(null)
+    setResults(null)
+    setFilters({ daysOff: [], instructor: '', crn: '' })
+    setCurrentScheduleIndex(0)
   }, [])
 
   return (
@@ -52,7 +87,7 @@ export function ScheduleProvider({ children }) {
       currentScheduleIndex, setCurrentScheduleIndex,
       step, setStep,
       handleGenerate, goBack,
-      filters, setFilters,
+      filters, setFilters, filteredOptions,
     }}>
       {children}
     </ScheduleContext.Provider>
