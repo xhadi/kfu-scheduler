@@ -1,12 +1,12 @@
 const SECTION_COLORS = [
-  'bg-blue-200 dark:bg-blue-900/80 border-blue-400 dark:border-blue-600',
-  'bg-green-200 dark:bg-green-900/80 border-green-400 dark:border-green-600',
-  'bg-yellow-200 dark:bg-yellow-900/80 border-yellow-400 dark:border-yellow-600',
-  'bg-purple-200 dark:bg-purple-900/80 border-purple-400 dark:border-purple-600',
-  'bg-pink-200 dark:bg-pink-900/80 border-pink-400 dark:border-pink-600',
-  'bg-orange-200 dark:bg-orange-900/80 border-orange-400 dark:border-orange-600',
-  'bg-cyan-200 dark:bg-cyan-900/80 border-cyan-400 dark:border-cyan-600',
-  'bg-red-200 dark:bg-red-900/80 border-red-400 dark:border-red-600',
+  'bg-blue-100 dark:bg-blue-900/60 border-l-blue-500 dark:border-l-blue-400',
+  'bg-green-100 dark:bg-green-900/60 border-l-green-500 dark:border-l-green-400',
+  'bg-yellow-100 dark:bg-yellow-900/60 border-l-yellow-500 dark:border-l-yellow-400',
+  'bg-purple-100 dark:bg-purple-900/60 border-l-purple-500 dark:border-l-purple-400',
+  'bg-pink-100 dark:bg-pink-900/60 border-l-pink-500 dark:border-l-pink-400',
+  'bg-orange-100 dark:bg-orange-900/60 border-l-orange-500 dark:border-l-orange-400',
+  'bg-cyan-100 dark:bg-cyan-900/60 border-l-cyan-500 dark:border-l-cyan-400',
+  'bg-red-100 dark:bg-red-900/60 border-l-red-500 dark:border-l-red-400',
 ]
 
 export default function TimetableBlock({ section, colorIndex }) {
@@ -14,16 +14,16 @@ export default function TimetableBlock({ section, colorIndex }) {
 
   return (
     <div
-      className={`h-full rounded-md border-l-4 p-2 text-sm leading-tight overflow-hidden ${color}`}
+      className={`h-full border-l-4 rounded px-1.5 py-1 ${color}`}
       dir="rtl"
     >
-      <div className="font-bold truncate text-sm">{section.course_title || section.course_id}</div>
-      <div className="truncate opacity-80 text-xs">{section.teacher}</div>
-      <div className="opacity-70 text-xs">
-        {section.start_time} - {section.end_time}
+      <div className="font-semibold truncate leading-tight">{section.course_title || section.course_id}</div>
+      <div className="truncate text-xs leading-tight opacity-85">{section.teacher}</div>
+      <div className="text-xs leading-tight opacity-75">
+        {section.start_time}–{section.end_time}
       </div>
-      <div className="opacity-70 text-xs">
-        CRN: {section.crn} | #{section.section_number}
+      <div className="text-xs leading-tight opacity-75">
+        CRN {section.crn}
       </div>
     </div>
   )

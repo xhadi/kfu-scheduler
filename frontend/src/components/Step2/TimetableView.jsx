@@ -5,6 +5,7 @@ import TimetableBlock from './TimetableBlock'
 const DAYS = ['sun', 'mon', 'tue', 'wed', 'thu']
 const ABBREV_TO_KEY = { 'ح': 'sun', 'ن': 'mon', 'ث': 'tue', 'ر': 'wed', 'خ': 'thu' }
 const TIME_SLOTS = Array.from({ length: 14 }, (_, i) => i + 7)
+const ROW_HEIGHT = 64
 
 export default function TimetableView({ schedule, courseColorMap }) {
   const { t } = useLanguage()
@@ -39,7 +40,7 @@ export default function TimetableView({ schedule, courseColorMap }) {
   const getTimeHeight = (startStr, endStr) => {
     const start = parseTime(startStr)
     const end = parseTime(endStr)
-    return Math.max(((end - start) / 14) * 100, 3)
+    return Math.max(((end - start) / 14) * 100, 4)
   }
 
   const dayLabels = {
@@ -52,24 +53,24 @@ export default function TimetableView({ schedule, courseColorMap }) {
 
   return (
     <div className="overflow-x-auto mt-4" dir="ltr">
-      <div className="min-w-[700px] bg-white dark:bg-gray-900 rounded-lg border border-border dark:border-border-dark">
+      <div className="bg-white dark:bg-gray-900 rounded-lg border border-border dark:border-border-dark" style={{ minWidth: '800px' }}>
         <div className="grid grid-cols-6 border-b border-border dark:border-border-dark bg-gray-50 dark:bg-gray-800">
-          <div className="p-2 text-xs text-center font-medium text-gray-500 border-e border-border dark:border-border-dark">
+          <div className="p-2 text-sm text-center font-medium text-gray-500 border-e border-border dark:border-border-dark">
             {t('time')}
           </div>
           {DAYS.map(day => (
-            <div key={day} className="p-2 text-center text-sm font-semibold border-e border-border dark:border-border-dark last:border-e-0">
+            <div key={day} className="p-2.5 text-center font-semibold border-e border-border dark:border-border-dark last:border-e-0">
               {dayLabels[day]}
             </div>
           ))}
         </div>
 
-        <div className="relative grid grid-cols-6" style={{ height: `${TIME_SLOTS.length * 56}px` }}>
+        <div className="relative grid grid-cols-6" style={{ height: `${TIME_SLOTS.length * ROW_HEIGHT}px` }}>
           <div className="relative border-e border-border dark:border-border-dark">
             {TIME_SLOTS.map(hour => (
               <div
                 key={hour}
-                className="absolute w-full text-xs text-gray-400 text-end pe-1 -translate-y-1/2"
+                className="absolute w-full text-xs text-gray-400 text-end pe-2 -translate-y-1/2"
                 style={{ top: `${((hour - 7) / 14) * 100}%` }}
               >
                 {String(hour).padStart(2, '0')}:00
@@ -94,7 +95,7 @@ export default function TimetableView({ schedule, courseColorMap }) {
                 return (
                   <div
                     key={`${sec.crn}-${idx}`}
-                    className="absolute px-0.5"
+                    className="absolute inset-x-1"
                     style={{
                       top: `${getTimePosition(sec.start_time)}%`,
                       height: `${getTimeHeight(sec.start_time, sec.end_time)}%`,
