@@ -49,6 +49,11 @@ export default function ResultsPage() {
     <div className="max-w-4xl mx-auto px-4 py-4">
       <ResultsHeader />
       <FilterBar />
+      {results.total_options_found > 100 && (
+        <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 rounded-lg text-sm">
+          {t('largeResults')}
+        </div>
+      )}
       <TimetableView schedule={schedule} courseColorMap={courseColorMap} />
       <ScheduleNav />
       <div className="text-center mt-4">
