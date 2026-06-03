@@ -1,0 +1,32 @@
+const API_BASE = '/api'
+
+export async function fetchColleges() {
+  const res = await fetch(`${API_BASE}/colleges`)
+  if (!res.ok) throw new Error('Failed to fetch colleges')
+  return res.json()
+}
+
+export async function fetchDepartments(collegeId) {
+  const res = await fetch(`${API_BASE}/colleges/${collegeId}/departments`)
+  if (!res.ok) throw new Error('Failed to fetch departments')
+  return res.json()
+}
+
+export async function fetchCourses(deptId) {
+  const res = await fetch(`${API_BASE}/departments/${deptId}/courses`)
+  if (!res.ok) throw new Error('Failed to fetch courses')
+  return res.json()
+}
+
+export async function generateSchedules(courseIds) {
+  const res = await fetch(`${API_BASE}/schedules/generate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ course_ids: courseIds }),
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: 'Network error' }))
+    throw new Error(err.detail || 'Failed to generate schedules')
+  }
+  return res.json()
+}
