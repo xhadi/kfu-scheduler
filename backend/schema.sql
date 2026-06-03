@@ -24,10 +24,12 @@ CREATE TABLE course (
 
 -- 4. Sections Table (Lowest Level / Most Granular)
 CREATE TABLE section (
-    crn INTEGER,                        -- e.g., 53210
+    crn INTEGER,                         -- e.g., 53210
     section_number VARCHAR(10) NOT NULL, -- e.g., "01"
+    section_type VARCHAR(20),            -- e.g., "نظري" or "عملي"
+    section_status VARCHAR(20),          -- e.g., "متاح" or "ممتلئ"
     course_id VARCHAR(20) NOT NULL,     
-    teacher VARCHAR(255) NOT NULL,      -- e.g., 'مروان محمد امين الحاج'
+    teacher VARCHAR(255),                -- e.g., 'مروان محمد امين الحاج'
     gender VARCHAR(10) NOT NULL CHECK (gender IN ('male', 'female')),
     start_time TIME NOT NULL,           -- e.g., '09:00:00'
     end_time TIME NOT NULL,             -- e.g., '10:15:00'
@@ -40,4 +42,5 @@ CREATE TABLE section (
 -- The algorithm will constantly filter by these fields, so indexing them speeds up queries drastically.
 CREATE INDEX idx_section_course ON section(course_id);
 CREATE INDEX idx_section_gender ON section(gender);
+CREATE INDEX idx_section_type ON section(section_type);
 CREATE INDEX idx_course_department ON course(department_id);

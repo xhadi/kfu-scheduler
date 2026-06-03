@@ -16,10 +16,12 @@ class GenderEnum(str, Enum):
 class SectionData(BaseModel):
     crn: int = Field(alias="CRN")
     section_number: str = Field(alias="Division")
+    section_type: str = Field(alias="Activity")
     teacher: str = Field(alias="Teacher")
     college_id: str = "unknown"
     dept_id: str = Field(alias="DEPTCode")
     course_id: str = Field(alias="Course")
+    section_status: str = Field(alias="Availability")
     
     # Missing fields accessed in load_data.py
     college_name: str = Field(alias="College")
@@ -58,5 +60,14 @@ class SectionData(BaseModel):
         # 3. Handle Days Formatting using helper
         raw_days = data.get("Days", "")
         data["days"] = clean_days_string(raw_days)
+        
+        raw_type = data.get("Activity", "") 
+        
+        if "عملي" in raw_type:
+            data["section_type"] = "Practical"
+        elif "نظري" in raw_type:
+            data["section_type"] = "Theory"
+        else:
+            data["section_type"] = raw_type
         
         return data
