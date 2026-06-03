@@ -1,0 +1,21 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #6d28d9;
+  --color-primary-light: #8b5cf6;
+  --color-primary-dark: #5b21b6;
+  --color-surface: #ffffff;
+  --color-surface-dark: #1a1a2e;
+  --color-text: #1f2937;
+  --color-text-dark: #e5e7eb;
+  --color-border: #e5e7eb;
+  --color-border-dark: #374151;
+}
+
+[dir="rtl"] {
+  font-family: 'Segoe UI', Tahoma, sans-serif;
+}
+
+[dir="ltr"] {
+  font-family: system-ui, sans-serif;
+}
