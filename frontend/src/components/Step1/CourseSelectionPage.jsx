@@ -1,5 +1,6 @@
 import { useSchedule } from '../../contexts/ScheduleContext'
 import { useLanguage } from '../../contexts/LanguageContext'
+import { useCourseCatalog } from '../../hooks/useCourseCatalog'
 import GenderSelector from './GenderSelector'
 import CourseSearch from './CourseSearch'
 import WantedList from './WantedList'
@@ -8,6 +9,7 @@ import LoadingModal from './LoadingModal'
 export default function CourseSelectionPage() {
   const { gender, selectedCourses, handleGenerate, loading, error } = useSchedule()
   const { t } = useLanguage()
+  const { colleges } = useCourseCatalog()
   const canGenerate = gender && selectedCourses.length > 0
 
   return (
@@ -33,6 +35,18 @@ export default function CourseSelectionPage() {
           {t('generate')}
         </button>
       </div>
+      {colleges.length > 0 && (
+        <div className="mt-4 text-center">
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+            {t('supportedColleges')}
+          </p>
+          <ol className="list-decimal list-inside text-sm text-gray-500 dark:text-gray-400 space-y-0.5">
+            {colleges.map(c => (
+              <li key={c.id}>{c.name}</li>
+            ))}
+          </ol>
+        </div>
+      )}
     </div>
   )
 }
