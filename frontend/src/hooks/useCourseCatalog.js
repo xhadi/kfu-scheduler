@@ -4,6 +4,7 @@ import { fetchColleges, fetchDepartments, fetchCourses } from '../api/scheduleAp
 export function useCourseCatalog() {
   const [catalog, setCatalog] = useState([])
   const [loading, setLoading] = useState(false)
+  const [colleges, setColleges] = useState([])
 
   useEffect(() => {
     let cancelled = false
@@ -12,6 +13,7 @@ export function useCourseCatalog() {
       setLoading(true)
       try {
         const colleges = await fetchColleges()
+        setColleges(colleges)
         const allCourses = []
 
         for (const college of colleges) {
@@ -57,5 +59,5 @@ export function useCourseCatalog() {
     )
   }, [catalog])
 
-  return { catalog, loading, searchCourses }
+  return { catalog, colleges, loading, searchCourses }
 }
