@@ -61,15 +61,9 @@ class SectionData(BaseModel):
         raw_days = data.get("Days", "")
         data["days"] = clean_days_string(raw_days)
         
-        # 4. Handle Section Type Mapping
-        # Since 'section_type' is aliased to 'Activity', we must update the 'Activity' key
-        # so Pydantic picks up the new value during initialization.
-        raw_type = data.get("Activity", "").strip() 
-        if "عملي" == raw_type:
-            data["Activity"] = "Practical"
-        elif "نظري" == raw_type:
-            data["Activity"] = "Theory"
-        else:
-            data["Activity"] = raw_type  # Keep it as is if it's something unexpected
+        # 4. Handle Section Type
+        raw_type = data.get("Activity", "").strip()
+        data["section_type"] = raw_type
+        
         
         return data

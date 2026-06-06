@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
 from pydantic import BaseModel
-from typing import List
+from typing import Dict, List, Tuple
 from datetime import time
 
 from database import get_db_session
@@ -17,6 +17,7 @@ router = APIRouter(
 # ==========================================
 class ScheduleRequest(BaseModel):
     course_ids: List[str]  # e.g., ["0921-101", "0411-101"]
+    gender: str | None = None
 
 # Mapping of College IDs to their Theory-to-Practical section offset
 LINKING_RULES = {
@@ -35,61 +36,48 @@ LINKING_RULES = {
 # 2. Helper Functions
 # ==========================================
 def sections_conflict(sec1: Section, sec2: Section) -> bool:
-    """Checks if two individual sections overlap in days AND time."""
-    days1 = set(sec1.days.split(","))
-    days2 = set(sec2.days.split(","))
-    
-    # If they share no days (or if one is "TBA"), they do not conflict
-    if not days1.intersection(days2):
+    if not sec1._ds & sec2._ds:
         return False
+    return sec1._sm < sec2._em and sec2._sm < sec1._em
 
-    # Check for time overlap
-    return sec1.start_time < sec2.end_time and sec2.start_time < sec1.end_time
+def bundles_conflict(bundle1: list, bundle2: list) -> bool:
+    for s1 in bundle1:
+        for s2 in bundle2:
+            if sections_conflict(s1, s2):
+                return True
+    return False
 
 def generate_combinations(
     course_index: int,
-    current_schedule: List[Section],
+    current_schedule: List[Tuple[int, int]],
     course_bundles: List[List[List[Section]]],
-    all_valid_schedules: List[List[Section]]
+    all_valid_schedules: List[List[Section]],
+    conflict: Dict[Tuple[int, int, int, int], bool],
 ):
-    """
-    Recursive backtracking algorithm. 
-    It tests 'bundles' of sections (e.g., a standalone Theory, or a [Theory + Practical] pair).
-    """
-    # Base Case: We found a valid bundle for every requested course
     if course_index == len(course_bundles):
-        all_valid_schedules.append(list(current_schedule))
+        schedule = []
+        for ci, bi in current_schedule:
+            schedule.extend(course_bundles[ci][bi])
+        all_valid_schedules.append(schedule)
         return
 
-    # Loop through all available bundles for the current course
-    for bundle in course_bundles[course_index]:
+    for bi, bundle in enumerate(course_bundles[course_index]):
         has_conflict = False
-        
-        # Check if ANY section inside this bundle conflicts with ANY section already picked
-        for sec_in_bundle in bundle:
-            for picked_sec in current_schedule:
-                if sections_conflict(sec_in_bundle, picked_sec):
-                    has_conflict = True
-                    break
-            if has_conflict:
+        for pi, pbi in current_schedule:
+            if conflict.get((pi, course_index, pbi, bi), False):
+                has_conflict = True
                 break
 
-        # If the entire bundle fits perfectly, tentatively add it and move to the next course
         if not has_conflict:
-            # Add all sections in the bundle to the current path
-            for sec in bundle:
-                current_schedule.append(sec)
-                
+            current_schedule.append((course_index, bi))
             generate_combinations(
-                course_index + 1, 
-                current_schedule, 
-                course_bundles, 
-                all_valid_schedules
+                course_index + 1,
+                current_schedule,
+                course_bundles,
+                all_valid_schedules,
+                conflict,
             )
-            
-            # Backtrack: Remove the sections we just added to try the next bundle
-            for _ in bundle:
-                current_schedule.pop()
+            current_schedule.pop()
 
 # ==========================================
 # 3. The Main Generator Endpoint
@@ -100,15 +88,25 @@ def generate_schedules(request: ScheduleRequest, db: Session = Depends(get_db_se
         raise HTTPException(status_code=400, detail="Please select at least one course.")
 
     course_bundles: List[List[List[Section]]] = []
+    course_titles_cache = {} # Store titles to avoid repeated DB queries later
     
     # 1. Fetch, Filter, and Bundle sections for every course requested
     for course_id in request.course_ids:
         college_id = course_id[:2]
+        
+        # Fetch sections and course details
         sections = db.exec(select(Section).where(Section.course_id == course_id)).all()
+        for sec in sections:
+            sec._ds = frozenset(sec.days.split(","))
+            sec._sm = sec.start_time.hour * 60 + sec.start_time.minute
+            sec._em = sec.end_time.hour * 60 + sec.end_time.minute
+            # _ds, _sm, _em are ephemeral runtime caches for conflict checks — not persisted
+
+        course = db.get(Course, course_id)
+        course_titles_cache[course_id] = course.title if course else "Unknown Course"
         
         if not sections:
-            course = db.get(Course, course_id)
-            course_title = course.title if course else course_id
+            course_title = course_titles_cache[course_id]
             raise HTTPException(
                 status_code=422, 
                 detail=f"Course '{course_title}' has no sections available."
@@ -116,30 +114,39 @@ def generate_schedules(request: ScheduleRequest, db: Session = Depends(get_db_se
         
         # Isolate practicals into a dictionary for instant lookup
         practicals_map = {
-            sec.section_number: sec for sec in sections if sec.section_type == "Practical"
+            sec.section_number: sec for sec in sections if sec.section_type == "عملي" and college_id in LINKING_RULES
         }
         
         # Isolate other classes as our starting points
         base_sections = [
-            sec for sec in sections if sec.section_type != "Practical"
+            sec for sec in sections if sec.section_type != "عملي" or college_id not in LINKING_RULES
         ]
         
         valid_bundles_for_this_course = []
 
         for base_sec in base_sections:
+            if base_sec.gender != request.gender:
+                continue
             # Check if this college requires linking Theory to Practical
-            if base_sec.section_type == "Theory" and college_id in LINKING_RULES:
-                gender_key = base_sec.gender.value
+            if base_sec.section_type == "نظري" and college_id in LINKING_RULES:
+                gender_key = base_sec.gender # gender is stored as a direct string ('male'/'female')
                 offset = LINKING_RULES[college_id].get(gender_key, 0)
                 
                 if offset > 0:
-                    target_practical_num = base_sec.section_number + offset
-                    
-                    if target_practical_num in practicals_map:
-                        practical_sec = practicals_map[target_practical_num]
-                        # Bundle the pair together
-                        valid_bundles_for_this_course.append([base_sec, practical_sec])
-                    continue # Move to next base section
+                    # Section numbers are strings (e.g., "01"), so we convert to int to add the offset
+                    # then convert back to string, padding with zero if necessary (e.g., "51")
+                    try:
+                        base_num = int(base_sec.section_number)
+                        target_practical_num = str(base_num + offset).zfill(2)
+                        
+                        if target_practical_num in practicals_map:
+                            practical_sec = practicals_map[target_practical_num]
+                            # Bundle the pair together
+                            valid_bundles_for_this_course.append([base_sec, practical_sec])
+                            continue # Move to next base section
+                    except ValueError:
+                        # If section_number isn't a number, skip this linking logic
+                        pass
             
             # If no linking rule applies, it's a standalone bundle
             valid_bundles_for_this_course.append([base_sec])
@@ -153,16 +160,32 @@ def generate_schedules(request: ScheduleRequest, db: Session = Depends(get_db_se
 
         course_bundles.append(valid_bundles_for_this_course)
 
-    # 2. Run the combinatorial engine
+    # 2. Sort courses by fewest bundles first (MRV heuristic)
+    sorted_indices = sorted(range(len(course_bundles)), key=lambda i: len(course_bundles[i]))
+    sorted_bundles = [course_bundles[i] for i in sorted_indices]
+
+    # 3. Pre-compute bundle conflict matrix
+    conflict = {}
+    n = len(sorted_bundles)
+    for i in range(n):
+        for j in range(i + 1, n):
+            for bi in range(len(sorted_bundles[i])):
+                for bj in range(len(sorted_bundles[j])):
+                    if bundles_conflict(sorted_bundles[i][bi], sorted_bundles[j][bj]):
+                        conflict[(i, j, bi, bj)] = True
+                        conflict[(j, i, bj, bi)] = True
+
+    # 4. Run the combinatorial engine
     all_valid_combinations = []
     generate_combinations(
         course_index=0,
         current_schedule=[],
-        course_bundles=course_bundles,
-        all_valid_schedules=all_valid_combinations
+        course_bundles=sorted_bundles,
+        all_valid_schedules=all_valid_combinations,
+        conflict=conflict,
     )
 
-    # 3. Format the final output to feed the React frontend
+    # 5. Format the final output to feed the React frontend
     formatted_schedules = []
     for index, combination in enumerate(all_valid_combinations):
         formatted_schedules.append({
@@ -171,6 +194,7 @@ def generate_schedules(request: ScheduleRequest, db: Session = Depends(get_db_se
                 {
                     "crn": sec.crn,
                     "course_id": sec.course_id,
+                    "course_title": course_titles_cache.get(sec.course_id, "Unknown Course"),
                     "section_number": sec.section_number,
                     "section_type": sec.section_type,
                     "teacher": sec.teacher,
@@ -178,7 +202,7 @@ def generate_schedules(request: ScheduleRequest, db: Session = Depends(get_db_se
                     "days": sec.days.split(","),
                     "start_time": sec.start_time.strftime("%H:%M"),
                     "end_time": sec.end_time.strftime("%H:%M"),
-                    "status": sec.status
+                    "status": sec.section_status
                 }
                 for sec in combination
             ]
