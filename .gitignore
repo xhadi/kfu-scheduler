@@ -23,16 +23,14 @@ Thumbs.db
 *ui.log
 
 # ==========================================
-# Backend (Python / FastAPI / SQLite) Rules
+# Backend (Python / FastAPI / DB) Rules
 # ==========================================
 backend/venv/
 backend/.venv/
 backend/env/
 backend/scraper/data/
 backend/*.db
-!backend/courses.db
 backend/.env
-# Python caching is made GLOBAL
 __pycache__/
 *.py[cod]
 
@@ -46,7 +44,9 @@ frontend/.env
 frontend/.env.local
 
 # ==========================================
-# Docs
+# Agent docs and graphs
 # ==========================================
 docs/
+graphify-out/
+.graphifyignore
 AGENTS.md
