@@ -54,7 +54,7 @@ export default function CourseSearch() {
           placeholder={disabled ? t('selectGender') : t('searchPlaceholder')}
           disabled={disabled}
           className="w-full ps-10 pe-4 py-3 rounded-lg border border-border dark:border-border-dark bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
-          dir="auto"
+          dir="ltr"
         />
       </div>
       {showDropdown && query && results.length > 0 && (

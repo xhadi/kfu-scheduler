@@ -36,15 +36,18 @@ export default function CourseSelectionPage() {
         </button>
       </div>
       {colleges.length > 0 && (
-        <div className="mt-4 text-center">
-          <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
-            {t('supportedColleges')}
-          </p>
-          <ol className="list-decimal list-inside text-sm text-gray-500 dark:text-gray-400 space-y-0.5">
-            {colleges.map(c => (
-              <li key={c.id}>{c.name}</li>
+        <div className="mt-6 flex justify-center">
+          <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden text-sm text-gray-500 dark:text-gray-400">
+            <div className="bg-gray-100 dark:bg-gray-800 px-4 py-2 text-center font-semibold">
+              {t('supportedColleges')}
+            </div>
+            {colleges.map((c, i) => (
+              <div key={c.id} className="flex border-t border-gray-200 dark:border-gray-700">
+                <div className="px-4 py-1.5 text-center text-gray-400 w-8 shrink-0">{i + 1}.</div>
+                <div className="px-4 py-1.5 text-center flex-1">{c.name}</div>
+              </div>
             ))}
-          </ol>
+          </div>
         </div>
       )}
     </div>
