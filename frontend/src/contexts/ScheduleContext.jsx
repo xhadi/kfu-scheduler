@@ -3,6 +3,8 @@ import { generateSchedules } from '../api/scheduleApi'
 
 const ScheduleContext = createContext()
 
+const KEY_TO_ABBREV = { sun: 'ح', mon: 'ن', tue: 'ث', wed: 'ر', thu: 'خ' }
+
 export function ScheduleProvider({ children }) {
   const [gender, setGender] = useState(null)
   const [selectedCourses, setSelectedCourses] = useState([])
@@ -11,38 +13,47 @@ export function ScheduleProvider({ children }) {
   const [error, setError] = useState(null)
   const [currentScheduleIndex, setCurrentScheduleIndex] = useState(0)
   const [step, setStep] = useState(1)
-  const [filters, setFilters] = useState({ daysOff: [], instructor: '', crn: '' })
+  const [filters, setFilters] = useState({
+    daysOff: new Set(),
+    instructors: new Set(),
+    crns: new Set(),
+    availability: 'all',
+  })
 
   const filteredOptions = useMemo(() => {
     if (!results) return []
-    let options = results.options
 
-    if (filters.daysOff.length > 0) {
-      const KEY_TO_ABBREV = { sat: 'س', sun: 'ح', mon: 'ن', tue: 'ث', wed: 'ر', thu: 'خ' }
-      const excludedAbbrevs = filters.daysOff.map(d => KEY_TO_ABBREV[d])
-      options = options.filter(schedule =>
-        !schedule.sections.some(sec =>
-          sec.days.some(day => excludedAbbrevs.includes(day.trim()))
-        )
-      )
-    }
+    return results.options.filter(schedule => {
+      if (filters.availability === 'available_only') {
+        if (schedule.sections.some(s => s.status !== 'متاحة')) {
+          return false
+        }
+      }
 
-    if (filters.instructor) {
-      const q = filters.instructor.toLowerCase()
-      options = options.filter(schedule =>
-        schedule.sections.some(sec =>
-          sec.teacher && sec.teacher.toLowerCase().includes(q)
-        )
-      )
-    }
+      if (filters.daysOff.size > 0) {
+        const excludedAbbrevs = [...filters.daysOff].map(d => KEY_TO_ABBREV[d])
+        const usedDays = new Set(schedule.sections.flatMap(s =>
+          s.days.map(d => d.trim())
+        ))
+        for (const d of excludedAbbrevs) {
+          if (usedDays.has(d)) return false
+        }
+      }
 
-    if (filters.crn) {
-      options = options.filter(schedule =>
-        schedule.sections.some(sec => String(sec.crn).includes(filters.crn))
-      )
-    }
+      if (filters.instructors.size > 0) {
+        if (!schedule.sections.some(s => filters.instructors.has(s.teacher))) {
+          return false
+        }
+      }
 
-    return options
+      if (filters.crns.size > 0) {
+        if (!schedule.sections.some(s => filters.crns.has(String(s.crn)))) {
+          return false
+        }
+      }
+
+      return true
+    })
   }, [results, filters])
 
   const addCourse = useCallback((course) => {
@@ -60,7 +71,7 @@ export function ScheduleProvider({ children }) {
     setLoading(true)
     setError(null)
     try {
-      const data = await generateSchedules(courseIds)
+      const data = await generateSchedules(courseIds, gender)
       setResults(data)
       setCurrentScheduleIndex(0)
       setStep(2)
@@ -69,15 +80,29 @@ export function ScheduleProvider({ children }) {
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [gender])
 
   const goBack = useCallback(() => {
     setStep(1)
     setError(null)
     setResults(null)
-    setFilters({ daysOff: [], instructor: '', crn: '' })
+    setFilters({ daysOff: new Set(), instructors: new Set(), crns: new Set(), availability: 'all' })
     setCurrentScheduleIndex(0)
   }, [])
+
+  const courseColorMap = useMemo(() => {
+    if (!results) return {}
+    const map = {}
+    let idx = 0
+    results.options.forEach(schedule =>
+      schedule.sections.forEach(sec => {
+        if (!(sec.course_id in map)) {
+          map[sec.course_id] = idx++
+        }
+      })
+    )
+    return map
+  }, [results])
 
   return (
     <ScheduleContext.Provider value={{
@@ -88,6 +113,7 @@ export function ScheduleProvider({ children }) {
       step, setStep,
       handleGenerate, goBack,
       filters, setFilters, filteredOptions,
+      courseColorMap,
     }}>
       {children}
     </ScheduleContext.Provider>
