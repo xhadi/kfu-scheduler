@@ -1,18 +1,24 @@
 from collections.abc import Generator
 from pathlib import Path
 from sqlmodel import Session, create_engine
+import os
 
 # 1. Define the Database URL
-# We use a path relative to this file to ensure it works regardless of where the app is started.
 BASE_DIR = Path(__file__).resolve().parent
-DATABASE_URL = f"sqlite:///{BASE_DIR}/courses.db"
+DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{BASE_DIR}/courses.db")
+
+# Fix for Render's legacy postgres:// protocol string
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
+connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
 
 # 2. Create the SQLModel Engine
-# 'connect_args={"check_same_thread": False}' is uniquely required for SQLite.
+# The engine is the core interface to the database. It manages connections and allows you to execute SQL statements.
 # It allows FastAPI to perform concurrent database operations across multiple threads safely.
 engine = create_engine(
     DATABASE_URL, 
-    connect_args={"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {},
+    connect_args=connect_args,
     echo=False  # Set to True if you want to see raw SQL statements printed in your terminal
 )
 
