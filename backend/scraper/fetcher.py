@@ -112,11 +112,10 @@ def fetch_university_courses_data():
                 continue
             
     # Save the raw data to a JSON file
-    master_file_path = os.path.join(DATA_DIR, "../university_courses_data.json")
     with open(RAW_JSON_PATH, "w", encoding="utf-8") as f:
         json.dump(all_courses, f, ensure_ascii=False, indent=4)
     print(f"Data fetching complete. Total sections fetched: {len(all_courses)}")
-    return master_file_path
+    return RAW_JSON_PATH
                 
 if __name__ == "__main__":
     fetch_university_courses_data()
