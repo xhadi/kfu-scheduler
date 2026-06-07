@@ -2,46 +2,18 @@ import { useMemo } from 'react'
 import { useLanguage } from '../../contexts/LanguageContext'
 import TimetableBlock from './TimetableBlock'
 
-const DAYS = ['sun', 'mon', 'tue', 'wed', 'thu']
-const ABBREV_TO_KEY = { 'ح': 'sun', 'ن': 'mon', 'ث': 'tue', 'ر': 'wed', 'خ': 'thu' }
-const TIME_SLOTS = Array.from({ length: 14 }, (_, i) => i + 7)
-const ROW_HEIGHT = 48
+const DAYS = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس']
+const KEY_TO_ABBREV = { 'الأحد': 'ح', 'الاثنين': 'ن', 'الثلاثاء': 'ث', 'الأربعاء': 'ر', 'الخميس': 'خ' }
 
-export default function TimetableView({ schedule, courseColorMap }) {
+function to12Hour(timeStr) {
+  const [h, m] = timeStr.split(':').map(Number)
+  const period = h >= 12 ? 'PM' : 'AM'
+  const hour = h % 12 || 12
+  return `${hour}:${String(m).padStart(2, '0')} ${period}`
+}
+
+export default function TimetableView({ schedule, courseColorMap, active }) {
   const { t } = useLanguage()
-
-  const sectionsByDay = useMemo(() => {
-    const map = {}
-    DAYS.forEach(d => { map[d] = [] })
-    if (!schedule || !schedule.sections) return map
-    schedule.sections.forEach(sec => {
-      sec.days.forEach(dayAbbrev => {
-        const dayKey = ABBREV_TO_KEY[dayAbbrev.trim()]
-        if (dayKey) {
-          map[dayKey].push(sec)
-        }
-      })
-    })
-    return map
-  }, [schedule])
-
-  if (!schedule || !schedule.sections) return null
-
-  const parseTime = (timeStr) => {
-    const [h, m] = timeStr.split(':').map(Number)
-    return h + m / 60
-  }
-
-  const getTimePosition = (timeStr) => {
-    const time = parseTime(timeStr)
-    return ((time - 7) / 14) * 100
-  }
-
-  const getTimeHeight = (startStr, endStr) => {
-    const start = parseTime(startStr)
-    const end = parseTime(endStr)
-    return Math.max(((end - start) / 14) * 100, 4)
-  }
 
   const dayLabels = {
     sun: t('sun'),
@@ -51,71 +23,114 @@ export default function TimetableView({ schedule, courseColorMap }) {
     thu: t('thu'),
   }
 
+  const slots = useMemo(() => {
+    if (!schedule || !schedule.sections || schedule.sections.length === 0) return null
+
+    const timePoints = [...new Set(
+      schedule.sections.flatMap(s => [s.start_time, s.end_time])
+    )].sort()
+
+    const pointIndex = {}
+    timePoints.forEach((tp, i) => { pointIndex[tp] = i })
+
+    const n = timePoints.length - 1
+    const cellsByDay = {}
+    DAYS.forEach(d => { cellsByDay[d] = new Array(n).fill(null) })
+
+    DAYS.forEach(day => {
+      const dayAbbrev = KEY_TO_ABBREV[day]
+      let coveredUntil = -1
+
+      for (let r = 0; r < n; r++) {
+        if (r <= coveredUntil) {
+          cellsByDay[day][r] = 'covered'
+          continue
+        }
+
+        const sectionsHere = schedule.sections.filter(sec => {
+          if (!sec.days.includes(dayAbbrev)) return false
+          const si = pointIndex[sec.start_time]
+          const ei = pointIndex[sec.end_time]
+          return si <= r && r < ei
+        })
+
+        if (sectionsHere.length === 0) continue
+
+        const maxEnd = Math.max(...sectionsHere.map(s => pointIndex[s.end_time]))
+        coveredUntil = maxEnd - 1
+
+        cellsByDay[day][r] = {
+          sections: sectionsHere,
+          rowspan: maxEnd - r,
+        }
+      }
+    })
+
+    const result = []
+    for (let i = 0; i < n; i++) {
+      result.push({
+        start: timePoints[i],
+        end: timePoints[i + 1],
+        cells: DAYS.reduce((acc, d) => { acc[d] = cellsByDay[d][i]; return acc }, {}),
+      })
+    }
+    return result
+  }, [schedule])
+
+  if (!slots) return null
+
   return (
-    <div className="overflow-x-auto mt-4" dir="ltr">
-      <div className="bg-white dark:bg-gray-900 rounded-lg border border-border dark:border-border-dark" style={{ minWidth: '960px' }}>
-        <div className="grid grid-cols-6 border-b border-border dark:border-border-dark bg-gray-50 dark:bg-gray-800">
-          <div className="p-2 text-sm text-center font-medium text-gray-500 border-e border-border dark:border-border-dark">
-            {t('time')}
-          </div>
-          {DAYS.map(day => (
-            <div key={day} className="p-2.5 text-center font-semibold border-e border-border dark:border-border-dark last:border-e-0">
-              {dayLabels[day]}
-            </div>
-          ))}
-        </div>
+    <div
+      className={`overflow-x-auto mt-4 rounded-lg border-2 transition-colors ${
+        active
+          ? 'border-primary dark:border-primary'
+          : 'border-transparent'
+      }`}
+      dir="ltr"
+    >
+      <table className="w-full min-w-[700px] border-collapse bg-white dark:bg-gray-900">
+        <thead>
+          <tr className="bg-gray-50 dark:bg-gray-800 border-b border-border dark:border-border-dark">
+            <th className="p-2 text-xs font-medium text-gray-500 border border-border dark:border-border-dark w-28">
+              {t('time')}
+            </th>
+            {DAYS.map(day => (
+              <th key={day} className="p-2 text-sm font-semibold border border-border dark:border-border-dark">
+                {dayLabels[day]} ({KEY_TO_ABBREV[day]})
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {slots.map((slot, r) => (
+            <tr key={r}>
+              <td className="p-2 text-xs text-gray-500 border border-border dark:border-border-dark whitespace-nowrap align-top">
+                {to12Hour(slot.start)} - {to12Hour(slot.end)}
+              </td>
+              {DAYS.map(day => {
+                const cell = slot.cells[day]
+                if (cell === 'covered') return null
+                if (!cell) {
+                  return <td key={day} className="p-1 border-l border-r border-border dark:border-border-dark align-top w-[18%]" />
+                }
 
-        <div className="relative grid grid-cols-6" style={{ height: `${TIME_SLOTS.length * ROW_HEIGHT}px` }}>
-          <div className="relative border-e border-border dark:border-border-dark">
-            {TIME_SLOTS.map(hour => {
-              const h12 = hour > 12 ? hour - 12 : hour
-              const suffix = hour >= 12 ? 'PM' : 'AM'
-              return (
-                <div
-                  key={hour}
-                  className="absolute w-full text-xs text-gray-400 text-end pe-2 -translate-y-1/2"
-                  style={{ top: `${((hour - 7) / 14) * 100}%` }}
-                >
-                  {h12}:00 {suffix}
-                </div>
-              )
-            })}
-          </div>
-
-          {DAYS.map(day => (
-            <div
-              key={day}
-              className="relative border-e border-border dark:border-border-dark last:border-e-0"
-            >
-              {TIME_SLOTS.map(hour => (
-                <div
-                  key={hour}
-                  className="absolute w-full border-t border-dashed border-gray-100 dark:border-gray-800"
-                  style={{ top: `${((hour - 7) / 14) * 100}%` }}
-                />
-              ))}
-              {sectionsByDay[day]?.map((sec, idx) => {
-                const courseIdx = schedule.sections.indexOf(sec)
                 return (
-                  <div
-                    key={`${sec.crn}-${idx}`}
-                    className="absolute inset-x-1"
-                    style={{
-                      top: `${getTimePosition(sec.start_time)}%`,
-                      height: `${getTimeHeight(sec.start_time, sec.end_time)}%`,
-                    }}
-                  >
-                    <TimetableBlock
-                      section={sec}
-                      colorIndex={courseColorMap?.[sec.course_id] ?? courseIdx}
-                    />
-                  </div>
+                  <td key={day} rowSpan={cell.rowspan} className="p-1 border-l border-r border-border dark:border-border-dark align-top w-[18%]">
+                    {cell.sections.map((sec, i) => (
+                      <div key={`${sec.crn}-${i}`} className="mb-1 last:mb-0">
+                        <TimetableBlock
+                          section={sec}
+                          colorIndex={courseColorMap?.[sec.course_id] ?? 0}
+                        />
+                      </div>
+                    ))}
+                  </td>
                 )
               })}
-            </div>
+            </tr>
           ))}
-        </div>
-      </div>
+        </tbody>
+      </table>
     </div>
   )
 }
