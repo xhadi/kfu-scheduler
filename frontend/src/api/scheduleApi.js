@@ -18,11 +18,11 @@ export async function fetchCourses(deptId) {
   return res.json()
 }
 
-export async function generateSchedules(courseIds) {
+export async function generateSchedules(courseIds, gender) {
   const res = await fetch(`${API_BASE}/schedules/generate`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ course_ids: courseIds }),
+    body: JSON.stringify({ course_ids: courseIds, gender }),
   })
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: 'Network error' }))
