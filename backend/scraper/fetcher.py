@@ -118,4 +118,6 @@ def fetch_university_courses_data():
     return RAW_JSON_PATH
                 
 if __name__ == "__main__":
-    fetch_university_courses_data()
+    from load_data import load_data_to_db
+    json_path = fetch_university_courses_data()
+    load_data_to_db(json_path)
