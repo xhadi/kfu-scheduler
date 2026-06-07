@@ -1,5 +1,5 @@
 from typing import List, Optional
-from datetime import time
+from datetime import datetime, time
 from enum import Enum
 from sqlmodel import Field, Relationship, SQLModel
 
@@ -60,9 +60,8 @@ class Section(SQLModel, table=True):
     course: Course = Relationship(back_populates="sections")
 
 
-from datetime import datetime
-
 class ScrapeStatus(SQLModel, table=True):
+    __tablename__ = "scrapestatus"
     id: int = Field(default=1, primary_key=True)
     status: str = Field(default="idle")  # "idle", "running", "completed", "failed"
     last_run_started: Optional[datetime] = Field(default=None)

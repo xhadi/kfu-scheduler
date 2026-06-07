@@ -48,7 +48,7 @@ CREATE INDEX idx_course_department ON course(department_id);
 -- 5. Scraping Status Table
 CREATE TABLE scrapestatus (
     id INTEGER PRIMARY KEY,
-    status VARCHAR(20) NOT NULL DEFAULT 'idle',
+    status VARCHAR(20) NOT NULL DEFAULT 'idle' CHECK (status IN ('idle', 'running', 'completed', 'failed')),
     last_run_started TIMESTAMP,
     last_run_finished TIMESTAMP,
     total_sections_scraped INTEGER DEFAULT 0,
