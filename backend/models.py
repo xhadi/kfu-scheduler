@@ -58,3 +58,14 @@ class Section(SQLModel, table=True):
 
     # Links
     course: Course = Relationship(back_populates="sections")
+
+
+from datetime import datetime
+
+class ScrapeStatus(SQLModel, table=True):
+    id: int = Field(default=1, primary_key=True)
+    status: str = Field(default="idle")  # "idle", "running", "completed", "failed"
+    last_run_started: Optional[datetime] = Field(default=None)
+    last_run_finished: Optional[datetime] = Field(default=None)
+    total_sections_scraped: int = Field(default=0)
+    error_message: Optional[str] = Field(default=None)

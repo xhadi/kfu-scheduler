@@ -44,3 +44,13 @@ CREATE INDEX idx_section_course ON section(course_id);
 CREATE INDEX idx_section_gender ON section(gender);
 CREATE INDEX idx_section_type ON section(section_type);
 CREATE INDEX idx_course_department ON course(department_id);
+
+-- 5. Scraping Status Table
+CREATE TABLE scrapestatus (
+    id INTEGER PRIMARY KEY,
+    status VARCHAR(20) NOT NULL DEFAULT 'idle',
+    last_run_started TIMESTAMP,
+    last_run_finished TIMESTAMP,
+    total_sections_scraped INTEGER DEFAULT 0,
+    error_message TEXT
+);
