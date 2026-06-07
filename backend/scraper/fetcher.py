@@ -2,6 +2,7 @@ import json
 import time
 import requests
 import os
+from load_data import load_data_to_db
 
 # Configuration
 BASE_URL = "https://www.kfu.edu.sa/_vti_bin/StudySchedules/StudySchedules.svc/GetCoursesByDept"
@@ -118,6 +119,5 @@ def fetch_university_courses_data():
     return RAW_JSON_PATH
                 
 if __name__ == "__main__":
-    from load_data import load_data_to_db
     json_path = fetch_university_courses_data()
     load_data_to_db(json_path)

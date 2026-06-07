@@ -2,8 +2,6 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
 from pydantic import BaseModel
 from typing import Dict, List, Tuple
-from datetime import time
-
 from database import get_db_session
 from models import Section, Course
 
@@ -114,7 +112,7 @@ def generate_schedules(request: ScheduleRequest, db: Session = Depends(get_db_se
         
         # Isolate practicals into a dictionary for instant lookup
         practicals_map = {
-            sec.section_number: sec for sec in sections if sec.section_type == "عملي" and college_id in LINKING_RULES
+            sec.section_number: sec for sec in sections if sec.section_type == "عملي" and college_id in LINKING_RULES and sec.gender == request.gender
         }
         
         # Isolate other classes as our starting points
@@ -153,10 +151,20 @@ def generate_schedules(request: ScheduleRequest, db: Session = Depends(get_db_se
 
         # If after bundling, a course has zero valid options (e.g., missing practicals), fail early
         if not valid_bundles_for_this_course:
-            raise HTTPException(
-                status_code=422, 
-                detail=f"Course '{course_id}' has invalid section configurations (missing practicals)."
-            )
+            course_title = course_titles_cache[course_id]
+            
+            any_matching_gender = any(sec.gender == request.gender for sec in sections)
+            if not any_matching_gender:
+                raise HTTPException(
+                    status_code=422, 
+                    detail=f"Course '{course_title}' has no sections available for the selected gender."
+                )
+            else:
+                # Section(s) exist but practical are missing or don't match the linking rules
+                raise HTTPException(
+                    status_code=422,
+                    detail=f"Course '{course_title}' has no valid section pairs available based on the linking rules."
+                )
 
         course_bundles.append(valid_bundles_for_this_course)
 
@@ -173,7 +181,6 @@ def generate_schedules(request: ScheduleRequest, db: Session = Depends(get_db_se
                 for bj in range(len(sorted_bundles[j])):
                     if bundles_conflict(sorted_bundles[i][bi], sorted_bundles[j][bj]):
                         conflict[(i, j, bi, bj)] = True
-                        conflict[(j, i, bj, bi)] = True
 
     # 4. Run the combinatorial engine
     all_valid_combinations = []
