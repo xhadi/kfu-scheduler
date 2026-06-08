@@ -1,4 +1,4 @@
-const API_BASE = '/api'
+const API_BASE = import.meta.env.VITE_API || '/api'
 
 export async function fetchColleges() {
   const res = await fetch(`${API_BASE}/colleges`)
