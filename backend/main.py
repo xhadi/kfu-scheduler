@@ -28,6 +28,10 @@ origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "http://localhost:3000",
+    
+    # Firebase Hosting URL
+    "https://kfu-scheduler.web.app/",
+    "https://kfu-scheduler.firebaseapp.com/"
 ]
 
 app.add_middleware(
