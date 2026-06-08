@@ -1,7 +1,7 @@
 export const translations = {
   ar: {
     appTitle: 'جدولني - KFU',
-    selectGender: 'اختر الجنس',
+    selectGender: 'اختر القسم',
     male: 'طلاب',
     female: 'طالبات',
     searchPlaceholder: 'ابحث عن مقرر بالرقم المرجعي (مثل: \u200E0921-111)',
@@ -10,6 +10,7 @@ export const translations = {
     supportedColleges: 'الكليات المدعومة',
     generating: 'جاري إنشاء الجداول...',
     back: 'رجوع',
+    search: '...بحث',
     editCourses: 'تعديل المواد',
     scheduleOf: 'الجدول {current} من {total}',
     dayOff: 'يوم إجازة',
@@ -45,8 +46,8 @@ export const translations = {
     estimatedTime: 'الوقت المتبقي المقدر: {seconds} ثانية',
   },
   en: {
-    appTitle: 'KFU Scheduler',
-    selectGender: 'Select Gender',
+    appTitle: 'Jadwalni - KFU',
+    selectGender: 'Select Campus',
     male: 'Male Students',
     female: 'Female Students',
     searchPlaceholder: 'Search for a Course by Course-Code (ex: 0921-111)...',
@@ -55,6 +56,7 @@ export const translations = {
     supportedColleges: 'Supported Colleges',
     generating: 'Generating schedules...',
     back: 'Back',
+    search: 'Search...',
     editCourses: 'Edit Courses',
     scheduleOf: 'Schedule {current} of {total}',
     dayOff: 'Day Off',

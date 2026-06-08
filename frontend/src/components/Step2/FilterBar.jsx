@@ -159,7 +159,7 @@ export default function FilterBar() {
                 type="text"
                 value={instructorSearch}
                 onChange={e => setInstructorSearch(e.target.value)}
-                placeholder="Search..."
+                placeholder={t('search')}
                 className="w-full pl-7 pr-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-gray-800"
               />
             </div>
@@ -187,7 +187,7 @@ export default function FilterBar() {
                 type="text"
                 value={crnSearch}
                 onChange={e => setCrnSearch(e.target.value)}
-                placeholder="Search..."
+                placeholder={t('search')}
                 className="w-full pl-7 pr-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-gray-800"
               />
             </div>
