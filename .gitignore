@@ -50,3 +50,8 @@ docs/
 graphify-out/
 .graphifyignore
 AGENTS.md
+
+# ==========================================
+# Agent Workspace Cache
+# ==========================================
+frontend/.agents/
