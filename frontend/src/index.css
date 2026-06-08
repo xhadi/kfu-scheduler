@@ -11,6 +11,12 @@
   --color-text-dark: #e2e8f0;     
   --color-border: #e5e7eb;
   --color-border-dark: #1e3a5f;
+
+  --animate-fadeIn: fadeIn 0.3s ease-out;
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
 }
 
 [dir="rtl"] {
