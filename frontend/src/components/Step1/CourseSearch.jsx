@@ -1,13 +1,11 @@
 import { useState, useRef, useEffect } from 'react'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useSchedule } from '../../contexts/ScheduleContext'
-import { useCourseCatalog } from '../../hooks/useCourseCatalog'
 import { Search } from 'lucide-react'
 
-export default function CourseSearch() {
+export default function CourseSearch({ searchCourses }) {
   const { t } = useLanguage()
   const { addCourse, gender } = useSchedule()
-  const { searchCourses, loading: catalogLoading } = useCourseCatalog()
   const [query, setQuery] = useState('')
   const [showDropdown, setShowDropdown] = useState(false)
   const inputRef = useRef(null)
@@ -72,7 +70,7 @@ export default function CourseSearch() {
           ))}
         </ul>
       )}
-      {showDropdown && query && results.length === 0 && !catalogLoading && (
+      {showDropdown && query && results.length === 0 && (
         <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-border dark:border-border-dark rounded-lg shadow-lg p-4 text-center text-gray-500">
           No courses found
         </div>
