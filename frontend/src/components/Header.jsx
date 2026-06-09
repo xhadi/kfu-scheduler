@@ -8,7 +8,7 @@ export default function Header() {
 
   return (
     <header className="flex items-center justify-between px-6 py-3 border-b border-border dark:border-border-dark">
-      <h1 className="text-lg font-bold text-primary">{t('appTitle')}</h1>
+      <a className="text-lg font-bold text-primary" href="/">{t('appTitle')}</a>
       <div className="flex items-center gap-2">
         <button
           onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
