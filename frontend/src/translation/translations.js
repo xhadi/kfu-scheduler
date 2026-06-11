@@ -44,6 +44,7 @@ export const translations = {
     serverWakingUp: 'الخادم يستيقظ من الخمول...',
     serverWakingUpDesc: 'يتم إيقاف تشغيل الخادم مؤقتاً عند عدم الاستعمال لتوفير الموارد. يستغرق بدء التشغيل حوالي 50 ثانية. شكراً لانتظارك!',
     estimatedTime: 'الوقت المتبقي المقدر: {seconds} ثانية',
+    noCourses: 'لم يتم العثور على مقررات',
   },
   en: {
     appTitle: 'Jadwalni - KFU',
@@ -90,5 +91,6 @@ export const translations = {
     serverWakingUp: 'Waking up the server...',
     serverWakingUpDesc: 'Our API server spins down after periods of inactivity. It is currently waking up, which takes about 50 seconds. Thank you for your patience!',
     estimatedTime: 'Estimated time remaining: {seconds}s',
+    noCourses: 'No courses found',
   },
 }
