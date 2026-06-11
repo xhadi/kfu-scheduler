@@ -1,48 +1,93 @@
 /* Course background colors — light mode */
-.course-bg-0 { background-color: #FAEEDA; } 
-.course-bg-1 { background-color: #E6F1FB; } 
-.course-bg-2 { background-color: #EEEDFE; } 
-.course-bg-3 { background-color: #EAF3DE; } 
-.course-bg-4 { background-color: #FAEEDA; } 
-.course-bg-5 { background-color: #E1F5EE; } 
-.course-bg-6 { background-color: #FBEAF0; } 
-.course-bg-7 { background-color: #EEEDFE; } 
+.course-bg-0 {
+  background-color: rgba(245, 158, 11, 0.08);
+  border-right: 3.5px solid rgba(245, 158, 11, 0.5);
+}
+.course-bg-1 {
+  background-color: rgba(14, 165, 233, 0.08);
+  border-right: 3.5px solid rgba(14, 165, 233, 0.5);
+}
+.course-bg-2 {
+  background-color: rgba(99, 102, 241, 0.08);
+  border-right: 3.5px solid rgba(99, 102, 241, 0.5);
+}
+.course-bg-3 {
+  background-color: rgba(16, 185, 129, 0.08);
+  border-right: 3.5px solid rgba(16, 185, 129, 0.5);
+}
+.course-bg-4 {
+  background-color: rgba(244, 63, 94, 0.08);
+  border-right: 3.5px solid rgba(244, 63, 94, 0.5);
+}
+.course-bg-5 {
+  background-color: rgba(20, 184, 166, 0.08);
+  border-right: 3.5px solid rgba(20, 184, 166, 0.5);
+}
+.course-bg-6 {
+  background-color: rgba(168, 85, 247, 0.08);
+  border-right: 3.5px solid rgba(168, 85, 247, 0.5);
+}
+.course-bg-7 {
+  background-color: rgba(100, 116, 139, 0.08);
+  border-right: 3.5px solid rgba(100, 116, 139, 0.5);
+}
 
 /* Course background colors — dark mode */
-.dark .course-bg-0 { background-color: #412402; } 
-.dark .course-bg-1 { background-color: #042C53; } 
-.dark .course-bg-2 { background-color: #26215C; } 
-.dark .course-bg-3 { background-color: #173404; } 
-.dark .course-bg-4 { background-color: #412402; } 
-.dark .course-bg-5 { background-color: #04342C; } 
-.dark .course-bg-6 { background-color: #4B1528; } 
-.dark .course-bg-7 { background-color: #26215C; } 
+.dark .course-bg-0 {
+  background-color: rgba(245, 158, 11, 0.15);
+  border-right: 3.5px solid rgba(245, 158, 11, 0.7);
+}
+.dark .course-bg-1 {
+  background-color: rgba(14, 165, 233, 0.15);
+  border-right: 3.5px solid rgba(14, 165, 233, 0.7);
+}
+.dark .course-bg-2 {
+  background-color: rgba(99, 102, 241, 0.15);
+  border-right: 3.5px solid rgba(99, 102, 241, 0.7);
+}
+.dark .course-bg-3 {
+  background-color: rgba(16, 185, 129, 0.15);
+  border-right: 3.5px solid rgba(16, 185, 129, 0.7);
+}
+.dark .course-bg-4 {
+  background-color: rgba(244, 63, 94, 0.15);
+  border-right: 3.5px solid rgba(244, 63, 94, 0.7);
+}
+.dark .course-bg-5 {
+  background-color: rgba(20, 184, 166, 0.15);
+  border-right: 3.5px solid rgba(20, 184, 166, 0.7);
+}
+.dark .course-bg-6 {
+  background-color: rgba(168, 85, 247, 0.15);
+  border-right: 3.5px solid rgba(168, 85, 247, 0.7);
+}
+.dark .course-bg-7 {
+  background-color: rgba(100, 116, 139, 0.15);
+  border-right: 3.5px solid rgba(100, 116, 139, 0.7);
+}
 
 /* Course text — light mode */
-.course-text          { color: #1F2937; }
-.course-text-secondary { color: #374151; } 
-.course-text-tertiary  { color: #4B5563; } 
+.course-text          { color: #0f172a; }
+.course-text-secondary { color: #334155; }
+.course-text-tertiary  { color: #475569; }
 
 /* Course text — dark mode */
-.dark .course-text          { color: #F1F5F9; } 
-.dark .course-text-secondary { color: #CBD5E1; } 
-.dark .course-text-tertiary  { color: #94A3B8; } 
+.dark .course-text          { color: #f8fafc; }
+.dark .course-text-secondary { color: #e2e8f0; }
+.dark .course-text-tertiary  { color: #cbd5e1; }
 
 /* Status left borders */
-.status-available { border-left: 4px solid #0C6B37; }
-.status-full { border-left: 4px solid #F8B324; }
-.status-not-available { border-left: 4px solid #BC2023; }
-.status-unknown { border-left: 4px solid #9CA3AF; }
-
-/* Schedule card */
-.schedule-card { min-width: 800px; }
+.status-available { border-left: 4px solid #10b981; }
+.status-full { border-left: 4px solid #f59e0b; }
+.status-not-available { border-left: 4px solid #ef4444; }
+.status-unknown { border-left: 4px solid #94a3b8; }
 
 /* WeekGrid time column */
 .weekgrid-time-col { width: 64px; }
 
 /* Section block */
 .section-block {
-  border-radius: 0.25rem;
+  border-radius: 0.5rem;
   font-size: 0.75rem;
   line-height: 1.25;
   overflow: hidden;
@@ -52,4 +97,13 @@
   height: 100%;
   min-height: 0;
   direction: rtl;
+  transition: all 0.2s ease-out;
+}
+
+.section-block:hover {
+  filter: brightness(0.95);
+}
+
+.dark .section-block:hover {
+  filter: brightness(1.1);
 }
