@@ -31,7 +31,7 @@ export default function CatalogLoader() {
   const timeMessage = t('estimatedTime', { seconds: secondsRemaining })
 
   return (
-    <div className="w-full max-w-md mx-auto p-6 bg-white dark:bg-gray-800 border border-border dark:border-border-dark rounded-xl shadow-lg transition-all duration-300 animate-fadeIn">
+    <div className="w-full max-w-md mx-auto p-6 bg-white dark:bg-gray-800 border border-border dark:border-border-dark rounded-xl shadow-lg transition-all duration-300 animate-fade-in">
       <div className="flex flex-col items-center space-y-4 text-center">
         <div className="relative flex items-center justify-center">
           <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
