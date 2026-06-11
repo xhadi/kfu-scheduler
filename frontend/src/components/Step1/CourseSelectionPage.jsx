@@ -1,3 +1,5 @@
+import { useState } from 'react'
+import { ChevronDown, ChevronUp } from 'lucide-react'
 import { useSchedule } from '../../contexts/ScheduleContext'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useCourseCatalog } from '../../hooks/useCourseCatalog'
@@ -11,12 +13,13 @@ export default function CourseSelectionPage() {
   const { gender, selectedCourses, handleGenerate, loading, error } = useSchedule()
   const { t } = useLanguage()
   const { colleges, loading: catalogLoading, error: catalogError, searchCourses, retry } = useCourseCatalog()
+  const [collegesExpanded, setCollegesExpanded] = useState(false)
   const canGenerate = gender && selectedCourses.length > 0
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
       {loading && <LoadingModal />}
-      <h2 className="text-2xl font-bold text-center mb-6">{t('selectGender')}</h2>
+      <h2 className="text-xl font-extrabold text-center mb-6 text-gray-800 dark:text-gray-100">{t('selectGender')}</h2>
       <GenderSelector />
       <div className="mt-6">
         {catalogLoading ? (
@@ -47,24 +50,34 @@ export default function CourseSelectionPage() {
         <button
           onClick={() => handleGenerate(selectedCourses.map(c => c.id))}
           disabled={!canGenerate || loading}
-          className="px-8 py-3 rounded-lg bg-primary text-white font-semibold hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-8 py-3.5 rounded-xl bg-primary text-white font-bold text-base shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none"
         >
           {t('generate')}
         </button>
       </div>
       {!catalogLoading && colleges.length > 0 && (
-        <div className="mt-6 flex justify-center">
-          <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden text-sm text-gray-500 dark:text-gray-400">
-            <div className="bg-gray-100 dark:bg-gray-800 px-4 py-2 text-center font-semibold">
-              {t('supportedColleges')}
+        <div className="mt-8 w-full max-w-md mx-auto border border-border dark:border-border-dark rounded-xl overflow-hidden shadow-sm bg-white dark:bg-gray-800 transition-all duration-200">
+          <button
+            type="button"
+            onClick={() => setCollegesExpanded(!collegesExpanded)}
+            className="w-full flex items-center justify-between px-4 py-2.5 font-semibold text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-colors outline-none"
+          >
+            {t('supportedColleges')}
+            {collegesExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+          </button>
+          {collegesExpanded && (
+            <div className="border-t border-border dark:border-border-dark divide-y divide-border/40 dark:divide-border-dark/40 max-h-56 overflow-y-auto">
+              {colleges.map((c, i) => (
+                <div
+                  key={c.id}
+                  className="flex px-4 py-2 text-sm text-gray-500 dark:text-gray-400 hover:bg-gray-50/50 dark:hover:bg-gray-700/20"
+                >
+                  <div className="w-8 shrink-0 text-gray-400 dark:text-gray-500">{i + 1}.</div>
+                  <div className="flex-1">{c.name}</div>
+                </div>
+              ))}
             </div>
-            {colleges.map((c, i) => (
-              <div key={c.id} className="flex border-t border-gray-200 dark:border-gray-700">
-                <div className="px-4 py-1.5 text-center text-gray-400 w-8 shrink-0">{i + 1}.</div>
-                <div className="px-4 py-1.5 text-center flex-1">{c.name}</div>
-              </div>
-            ))}
-          </div>
+          )}
         </div>
       )}
     </div>
