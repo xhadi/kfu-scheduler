@@ -10,7 +10,7 @@ const WINDOW = 5
 
 export default function ResultsPage() {
   const { results, filteredOptions, currentScheduleIndex, goBack, courseColorMap } = useSchedule()
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
   const scrollRef = useRef(null)
   const [page, setPage] = useState(0)
   const [windowStart, setWindowStart] = useState(0)
@@ -134,6 +134,10 @@ export default function ResultsPage() {
           </button>
         </div>
       )}
+
+      <div className="md:hidden text-center text-xs text-gray-400 dark:text-gray-500 mb-4 select-none animate-pulse">
+        {lang === 'ar' ? '← اسحب لمشاهدة الجدول كاملاً →' : '← Swipe horizontally to view full schedule →'}
+      </div>
 
       {/* Schedule list — vertical stack */}
       <div ref={scrollRef} className="flex flex-col gap-4 pb-4">
