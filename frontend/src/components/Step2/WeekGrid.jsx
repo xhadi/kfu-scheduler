@@ -28,18 +28,24 @@ export default function WeekGrid({ schedule, courseColorMap }) {
   const { firstHour, lastHour, sectionsByDay } = useMemo(() => {
     if (!schedule || !schedule.sections) return { firstHour: 7, lastHour: 20, sectionsByDay: {} }
 
-    const starts = schedule.sections.map(s => parseTime(s.start_time))
-    const ends = schedule.sections.map(s => parseTime(s.end_time))
-    const first = Math.floor(Math.min(...starts))
-    const last = Math.ceil(Math.max(...ends))
+    const allSlots = schedule.sections.flatMap(sec =>
+      sec.time_slots.map(slot => ({
+        ...sec,
+        day: slot.day,
+        start_time: slot.start,
+        end_time: slot.end,
+      }))
+    )
+
+    const starts = allSlots.map(s => parseTime(s.start_time))
+    const ends = allSlots.map(s => parseTime(s.end_time))
+    const first = starts.length ? Math.floor(Math.min(...starts)) : 7
+    const last = ends.length ? Math.ceil(Math.max(...ends)) : 20
 
     const byDay = {}
     DAYS.forEach(d => { byDay[d.abbrev] = [] })
-    schedule.sections.forEach(sec => {
-      sec.days.forEach(dayAbbrev => {
-        const d = dayAbbrev.trim()
-        if (byDay[d]) byDay[d].push(sec)
-      })
+    allSlots.forEach(item => {
+      if (byDay[item.day]) byDay[item.day].push(item)
     })
 
     return { firstHour: first, lastHour: last, sectionsByDay: byDay }
