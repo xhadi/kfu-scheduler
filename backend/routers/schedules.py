@@ -1,3 +1,4 @@
+import json
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
 from pydantic import BaseModel
@@ -34,9 +35,17 @@ LINKING_RULES = {
 # 2. Helper Functions
 # ==========================================
 def sections_conflict(sec1: Section, sec2: Section) -> bool:
-    if not sec1._ds & sec2._ds:
-        return False
-    return sec1._sm < sec2._em and sec2._sm < sec1._em
+    for s1 in sec1._slots:
+        s1_sm = int(s1["start"][:2]) * 60 + int(s1["start"][3:])
+        s1_em = int(s1["end"][:2]) * 60 + int(s1["end"][3:])
+        for s2 in sec2._slots:
+            if s1["day"] != s2["day"]:
+                continue
+            s2_sm = int(s2["start"][:2]) * 60 + int(s2["start"][3:])
+            s2_em = int(s2["end"][:2]) * 60 + int(s2["end"][3:])
+            if s1_sm < s2_em and s2_sm < s1_em:
+                return True
+    return False
 
 def bundles_conflict(bundle1: list, bundle2: list) -> bool:
     for s1 in bundle1:
@@ -95,10 +104,8 @@ def generate_schedules(request: ScheduleRequest, db: Session = Depends(get_db_se
         # Fetch sections and course details
         sections = db.exec(select(Section).where(Section.course_id == course_id)).all()
         for sec in sections:
-            sec._ds = frozenset(sec.days.split(","))
-            sec._sm = sec.start_time.hour * 60 + sec.start_time.minute
-            sec._em = sec.end_time.hour * 60 + sec.end_time.minute
-            # _ds, _sm, _em are ephemeral runtime caches for conflict checks — not persisted
+            sec._slots = json.loads(sec.time_slots)
+            # _slots is an ephemeral runtime cache for conflict checks — not persisted
 
         course = db.get(Course, course_id)
         course_titles_cache[course_id] = course.title if course else "Unknown Course"
@@ -206,9 +213,7 @@ def generate_schedules(request: ScheduleRequest, db: Session = Depends(get_db_se
                     "section_type": sec.section_type,
                     "teacher": sec.teacher,
                     "gender": sec.gender,
-                    "days": sec.days.split(","),
-                    "start_time": sec.start_time.strftime("%H:%M"),
-                    "end_time": sec.end_time.strftime("%H:%M"),
+                    "time_slots": sec._slots,
                     "status": sec.section_status
                 }
                 for sec in combination
