@@ -1,7 +1,7 @@
+import json
 from pydantic import BaseModel, Field, model_validator
-from datetime import time
 from enum import Enum
-from utils import parse_time_string, clean_days_string 
+from utils import parse_time_string
 from scraper.fetcher import DEPARTMENT_MAP
 
 """
@@ -31,9 +31,7 @@ class SectionData(BaseModel):
 
     # Fields that will be parsed and populated by the validator
     gender: GenderEnum
-    start_time: time = None
-    end_time: time = None
-    days: str = None
+    time_slots: str = "[]"
 
     @model_validator(mode="before")
     @classmethod
@@ -51,15 +49,17 @@ class SectionData(BaseModel):
         code = data.get("StudentsCode")
         data["gender"] = GenderEnum.MALE if code == "11" else GenderEnum.FEMALE
         
-        # 2. Handle Time Slicing using helper
+        # 2. Build time slots from raw time and days
         raw_time = data.get("Time", "")
         start, end = parse_time_string(raw_time)
-        data["start_time"] = start
-        data["end_time"] = end
-        
-        # 3. Handle Days Formatting using helper
+        start_str = f"{start.hour:02d}:{start.minute:02d}"
+        end_str = f"{end.hour:02d}:{end.minute:02d}"
+
         raw_days = data.get("Days", "")
-        data["days"] = clean_days_string(raw_days)
+        day_list = [d.strip() for d in raw_days.split() if d.strip()]
+
+        slots = [{"day": d, "start": start_str, "end": end_str} for d in day_list]
+        data["time_slots"] = json.dumps(slots) if slots else "[]"
         
         # 4. Handle Section Type
         raw_type = data.get("Activity", "").strip()

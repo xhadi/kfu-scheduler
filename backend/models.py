@@ -1,5 +1,5 @@
 from typing import List, Optional
-from datetime import datetime, time
+from datetime import datetime
 from enum import Enum
 from sqlmodel import Field, Relationship, SQLModel
 
@@ -44,19 +44,14 @@ class Course(SQLModel, table=True):
 
 class Section(SQLModel, table=True):
     crn: str = Field(primary_key=True)
-    section_number: str = Field(primary_key=True)  # Example: "01"
-    section_type: str = Field(nullable = True)         # Example: "نظري"
-    section_status: str = Field(nullable = True)       # Example: "متاح"
+    section_number: str = Field(primary_key=True)
+    section_type: str = Field(nullable=True)
+    section_status: str = Field(nullable=True)
     course_id: str = Field(foreign_key="course.id", primary_key=True)
-    teacher: str = Field(nullable = True)                      # Example: "مروان محمد امين الحاج"
-    gender: str                        
-    
-    # We will populate these using the parser
-    start_time: time
-    end_time: time
-    days: str                          
+    teacher: str = Field(nullable=True)
+    gender: str
+    time_slots: str
 
-    # Links
     course: Course = Relationship(back_populates="sections")
 
 
