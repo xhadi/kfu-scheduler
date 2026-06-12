@@ -27,7 +27,9 @@ export default function TimetableView({ schedule, courseColorMap, active }) {
     if (!schedule || !schedule.sections || schedule.sections.length === 0) return null
 
     const timePoints = [...new Set(
-      schedule.sections.flatMap(s => [s.start_time, s.end_time])
+      schedule.sections.flatMap(s =>
+        s.time_slots.flatMap(slot => [slot.start, slot.end])
+      )
     )].sort()
 
     const pointIndex = {}
@@ -48,15 +50,23 @@ export default function TimetableView({ schedule, courseColorMap, active }) {
         }
 
         const sectionsHere = schedule.sections.filter(sec => {
-          if (!sec.days.includes(dayAbbrev)) return false
-          const si = pointIndex[sec.start_time]
-          const ei = pointIndex[sec.end_time]
-          return si <= r && r < ei
+          return sec.time_slots.some(slot => {
+            if (slot.day !== dayAbbrev) return false
+            const si = pointIndex[slot.start]
+            const ei = pointIndex[slot.end]
+            return si <= r && r < ei
+          })
         })
 
         if (sectionsHere.length === 0) continue
 
-        const maxEnd = Math.max(...sectionsHere.map(s => pointIndex[s.end_time]))
+        const maxEnd = Math.max(...sectionsHere.map(s => {
+          const slot = s.time_slots.find(sl =>
+            sl.day === dayAbbrev &&
+            pointIndex[sl.start] <= r && r < pointIndex[sl.end]
+          )
+          return pointIndex[slot.end]
+        }))
         coveredUntil = maxEnd - 1
 
         cellsByDay[day][r] = {
