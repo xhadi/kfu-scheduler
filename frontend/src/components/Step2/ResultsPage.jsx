@@ -1,7 +1,7 @@
 import { useRef, useEffect, useState } from 'react'
 import { useSchedule } from '../../contexts/ScheduleContext'
 import { useLanguage } from '../../contexts/LanguageContext'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Check, Users, Lock } from 'lucide-react'
 import FilterBar from './FilterBar'
 import ScheduleCard from './ScheduleCard'
 
@@ -59,21 +59,21 @@ export default function ResultsPage() {
         </div>
       )}
 
-      <div className="flex justify-center gap-4 mb-3 text-xs" dir="ltr">
+      <div className="flex justify-center gap-6 mb-4 text-xs font-semibold select-none" dir="ltr">
         <span className="flex items-center gap-1.5">
-          <span className="inline-block w-1 h-4 rounded" style={{ backgroundColor: '#0C6B37' }} />
+          <Check size={14} className="text-emerald-600 dark:text-emerald-400" />
           <span className="text-gray-600 dark:text-gray-300">متاحة</span>
           <span className="text-gray-400 dark:text-gray-500">/</span>
           <span className="text-gray-400 dark:text-gray-500">Available</span>
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="inline-block w-1 h-4 rounded" style={{ backgroundColor: '#F8B324' }} />
+          <Users size={14} className="text-amber-600 dark:text-amber-400" />
           <span className="text-gray-600 dark:text-gray-300">ممتلئة</span>
           <span className="text-gray-400 dark:text-gray-500">/</span>
           <span className="text-gray-400 dark:text-gray-500">Full</span>
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="inline-block w-1 h-4 rounded" style={{ backgroundColor: '#BC2023' }} />
+          <Lock size={13} className="text-red-500 dark:text-red-400" />
           <span className="text-gray-600 dark:text-gray-300">غير متاحة</span>
           <span className="text-gray-400 dark:text-gray-500">/</span>
           <span className="text-gray-400 dark:text-gray-500">Not Available</span>

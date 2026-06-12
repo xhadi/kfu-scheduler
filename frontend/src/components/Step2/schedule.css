@@ -1,69 +1,69 @@
 /* Course background colors — light mode */
 .course-bg-0 {
-  background-color: rgba(245, 158, 11, 0.08);
-  border-right: 3.5px solid rgba(245, 158, 11, 0.5);
+  background-color: #fef3c7;
+  border-right: 3.5px solid #f59e0b;
 }
 .course-bg-1 {
-  background-color: rgba(14, 165, 233, 0.08);
-  border-right: 3.5px solid rgba(14, 165, 233, 0.5);
+  background-color: #e0f2fe;
+  border-right: 3.5px solid #0ea5e9;
 }
 .course-bg-2 {
-  background-color: rgba(99, 102, 241, 0.08);
-  border-right: 3.5px solid rgba(99, 102, 241, 0.5);
+  background-color: #e0e7ff;
+  border-right: 3.5px solid #6366f1;
 }
 .course-bg-3 {
-  background-color: rgba(16, 185, 129, 0.08);
-  border-right: 3.5px solid rgba(16, 185, 129, 0.5);
+  background-color: #d1fae5;
+  border-right: 3.5px solid #10b981;
 }
 .course-bg-4 {
-  background-color: rgba(244, 63, 94, 0.08);
-  border-right: 3.5px solid rgba(244, 63, 94, 0.5);
+  background-color: #ffe4e6;
+  border-right: 3.5px solid #f43f5e;
 }
 .course-bg-5 {
-  background-color: rgba(20, 184, 166, 0.08);
-  border-right: 3.5px solid rgba(20, 184, 166, 0.5);
+  background-color: #ccfbf1;
+  border-right: 3.5px solid #20b4a6;
 }
 .course-bg-6 {
-  background-color: rgba(168, 85, 247, 0.08);
-  border-right: 3.5px solid rgba(168, 85, 247, 0.5);
+  background-color: #f3e8ff;
+  border-right: 3.5px solid #a855f7;
 }
 .course-bg-7 {
-  background-color: rgba(100, 116, 139, 0.08);
-  border-right: 3.5px solid rgba(100, 116, 139, 0.5);
+  background-color: #f1f5f9;
+  border-right: 3.5px solid #64748b;
 }
 
 /* Course background colors — dark mode */
 .dark .course-bg-0 {
-  background-color: rgba(245, 158, 11, 0.15);
-  border-right: 3.5px solid rgba(245, 158, 11, 0.7);
+  background-color: #2e1d05;
+  border-right: 3.5px solid #f59e0b;
 }
 .dark .course-bg-1 {
-  background-color: rgba(14, 165, 233, 0.15);
-  border-right: 3.5px solid rgba(14, 165, 233, 0.7);
+  background-color: #0b1f30;
+  border-right: 3.5px solid #0ea5e9;
 }
 .dark .course-bg-2 {
-  background-color: rgba(99, 102, 241, 0.15);
-  border-right: 3.5px solid rgba(99, 102, 241, 0.7);
+  background-color: #121230;
+  border-right: 3.5px solid #6366f1;
 }
 .dark .course-bg-3 {
-  background-color: rgba(16, 185, 129, 0.15);
-  border-right: 3.5px solid rgba(16, 185, 129, 0.7);
+  background-color: #062615;
+  border-right: 3.5px solid #10b981;
 }
 .dark .course-bg-4 {
-  background-color: rgba(244, 63, 94, 0.15);
-  border-right: 3.5px solid rgba(244, 63, 94, 0.7);
+  background-color: #2a0812;
+  border-right: 3.5px solid #f43f5e;
 }
 .dark .course-bg-5 {
-  background-color: rgba(20, 184, 166, 0.15);
-  border-right: 3.5px solid rgba(20, 184, 166, 0.7);
+  background-color: #04241d;
+  border-right: 3.5px solid #20b4a6;
 }
 .dark .course-bg-6 {
-  background-color: rgba(168, 85, 247, 0.15);
-  border-right: 3.5px solid rgba(168, 85, 247, 0.7);
+  background-color: #200830;
+  border-right: 3.5px solid #a855f7;
 }
 .dark .course-bg-7 {
-  background-color: rgba(100, 116, 139, 0.15);
-  border-right: 3.5px solid rgba(100, 116, 139, 0.7);
+  background-color: #1e293b;
+  border-right: 3.5px solid #64748b;
 }
 
 /* Course text — light mode */
@@ -76,11 +76,11 @@
 .dark .course-text-secondary { color: #e2e8f0; }
 .dark .course-text-tertiary  { color: #cbd5e1; }
 
-/* Status left borders */
-.status-available { border-left: 4px solid #10b981; }
-.status-full { border-left: 4px solid #f59e0b; }
-.status-not-available { border-left: 4px solid #ef4444; }
-.status-unknown { border-left: 4px solid #94a3b8; }
+/* Status selectors (borders removed in favor of icons) */
+.status-available {}
+.status-full {}
+.status-not-available {}
+.status-unknown {}
 
 /* WeekGrid time column */
 .weekgrid-time-col { width: 64px; }
