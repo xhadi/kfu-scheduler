@@ -33,7 +33,7 @@ export function ScheduleProvider({ children }) {
       if (filters.daysOff.size > 0) {
         const excludedAbbrevs = [...filters.daysOff].map(d => KEY_TO_ABBREV[d])
         const usedDays = new Set(schedule.sections.flatMap(s =>
-          s.days.map(d => d.trim())
+          s.time_slots.map(slot => slot.day)
         ))
         for (const d of excludedAbbrevs) {
           if (usedDays.has(d)) return false
