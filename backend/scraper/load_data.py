@@ -1,12 +1,11 @@
 import json
 import sys
 from pathlib import Path
-from sqlmodel import Session
+from sqlmodel import Session, SQLModel
 
 # Ensure Python can find your models and schemas from the root directory
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
-from sqlmodel import SQLModel
 from database import engine
 from models import College, Department, Course, Section
 from schemas import SectionData
@@ -21,8 +20,6 @@ def load_data_to_db(json_file_path: str | Path):
     print(f"Reading {path.name}...")
     with open(path, 'r', encoding='utf-8') as f:
         raw_data = json.load(f)
-
-    DAY_ORDER = {"ح": 0, "ن": 1, "ث": 2, "ر": 3, "خ": 4}
 
     # 1. In-Memory Storage (Prevents asking the database if a college exists 10,000 times)
     unique_colleges = {}
@@ -66,7 +63,7 @@ def load_data_to_db(json_file_path: str | Path):
                 department_id=item.dept_id
             )
 
-        # Build Sections (dedup by composite key, merge days)
+        # Build Sections (dedup by composite key, merge time_slots)
         section_key = (item.crn, item.section_number, item.course_id)
         if section_key not in unique_sections:
             unique_sections[section_key] = Section(
@@ -77,16 +74,21 @@ def load_data_to_db(json_file_path: str | Path):
                 section_status=item.section_status,
                 teacher=item.teacher,
                 gender=item.gender.value,
-                start_time=item.start_time,
-                end_time=item.end_time,
-                days=item.days
+                time_slots=item.time_slots
             )
         else:
             existing = unique_sections[section_key]
-            existing_days = set(existing.days.split(","))
-            new_days = set(item.days.split(","))
-            combined = existing_days | new_days
-            existing.days = ",".join(sorted(combined, key=lambda d: DAY_ORDER.get(d, 99)))
+            existing_slots = json.loads(existing.time_slots)
+            new_slots = json.loads(item.time_slots)
+            combined = existing_slots + new_slots
+            seen = set()
+            unique = []
+            for slot in combined:
+                key = (slot["day"], slot["start"], slot["end"])
+                if key not in seen:
+                    seen.add(key)
+                    unique.append(slot)
+            existing.time_slots = json.dumps(unique)
 
     # 3. Bulk Database Insertion
     print("Committing to the database...")
