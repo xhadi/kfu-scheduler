@@ -43,7 +43,7 @@ class Course(SQLModel, table=True):
     sections: List["Section"] = Relationship(back_populates="course")
 
 class Section(SQLModel, table=True):
-    crn: int = Field(primary_key=True) # Example: 53210
+    crn: str = Field(primary_key=True)
     section_number: str = Field(primary_key=True)  # Example: "01"
     section_type: str = Field(nullable = True)         # Example: "نظري"
     section_status: str = Field(nullable = True)       # Example: "متاح"

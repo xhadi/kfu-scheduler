@@ -6,6 +6,7 @@ from sqlmodel import Session
 # Ensure Python can find your models and schemas from the root directory
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
+from sqlmodel import SQLModel
 from database import engine
 from models import College, Department, Course, Section
 from schemas import SectionData
@@ -21,11 +22,13 @@ def load_data_to_db(json_file_path: str | Path):
     with open(path, 'r', encoding='utf-8') as f:
         raw_data = json.load(f)
 
+    DAY_ORDER = {"ح": 0, "ن": 1, "ث": 2, "ر": 3, "خ": 4}
+
     # 1. In-Memory Storage (Prevents asking the database if a college exists 10,000 times)
     unique_colleges = {}
     unique_departments = {}
     unique_courses = {}
-    sections_to_insert = []
+    unique_sections = {}
 
     print("Processing and deduplicating records in memory...")
     
@@ -63,9 +66,10 @@ def load_data_to_db(json_file_path: str | Path):
                 department_id=item.dept_id
             )
 
-        # Build Sections (These are always unique by CRN)
-        sections_to_insert.append(
-            Section(
+        # Build Sections (dedup by composite key, merge days)
+        section_key = (item.crn, item.section_number, item.course_id)
+        if section_key not in unique_sections:
+            unique_sections[section_key] = Section(
                 crn=item.crn,
                 section_number=item.section_number,
                 course_id=item.course_id,
@@ -77,10 +81,17 @@ def load_data_to_db(json_file_path: str | Path):
                 end_time=item.end_time,
                 days=item.days
             )
-        )
+        else:
+            existing = unique_sections[section_key]
+            existing_days = set(existing.days.split(","))
+            new_days = set(item.days.split(","))
+            combined = existing_days | new_days
+            existing.days = ",".join(sorted(combined, key=lambda d: DAY_ORDER.get(d, 99)))
 
     # 3. Bulk Database Insertion
     print("Committing to the database...")
+    
+    SQLModel.metadata.create_all(engine)
     
     with Session(engine) as session:
         # Must be committed in hierarchical order due to Foreign Keys
@@ -100,8 +111,8 @@ def load_data_to_db(json_file_path: str | Path):
             session.merge(course)
         session.commit()
 
-        print(f"   -> Merging {len(sections_to_insert)} Sections...")
-        for section in sections_to_insert:
+        print(f"   -> Merging {len(unique_sections)} Sections...")
+        for section in unique_sections.values():
             session.merge(section)
         session.commit()
 
