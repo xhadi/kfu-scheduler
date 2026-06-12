@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useSchedule } from '../../contexts/ScheduleContext'
-import { Filter, X, Search } from 'lucide-react'
+import { Filter, X, Search, ChevronDown, ChevronUp } from 'lucide-react'
 
 const DAYS = [
   { key: 'sun', ar: 'الأحد', en: 'Sun' },
@@ -87,133 +87,152 @@ export default function FilterBar() {
   const activeCount = filters.daysOff.size + filters.instructors.size + filters.crns.size + (filters.availability !== 'all' ? 1 : 0)
 
   return (
-    <div className="border border-border dark:border-border-dark rounded-lg mb-4">
+    <div className="border border-border/80 dark:border-border-dark/80 rounded-2xl mb-6 shadow-sm overflow-hidden bg-white/70 dark:bg-surface-dark/45 backdrop-blur-md transition-all duration-300">
       <button
+        type="button"
         onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-center justify-between px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-800"
+        className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-gray-50/40 dark:hover:bg-gray-800/30 transition-colors duration-200 outline-none cursor-pointer"
       >
-        <span className="flex items-center gap-2 font-medium">
-          <Filter size={16} />
-          {t('dayOff')} / {t('instructor')} / {t('crn')}
+        <span className="flex items-center gap-2.5 font-semibold text-sm text-gray-700 dark:text-gray-200">
+          <Filter size={16} className="text-primary dark:text-primary-light" />
+          <span>{t('dayOff')} / {t('instructor')} / {t('crn')}</span>
         </span>
-        <span className="text-sm text-gray-500">{activeCount > 0 ? `(${activeCount})` : ''}</span>
+        <div className="flex items-center gap-3">
+          {activeCount > 0 && (
+            <span className="px-2 py-0.5 text-xs font-extrabold bg-primary/10 dark:bg-primary-light/20 text-primary dark:text-primary-light rounded-full">
+              {activeCount}
+            </span>
+          )}
+          {expanded ? <ChevronUp size={16} className="text-gray-400" /> : <ChevronDown size={16} className="text-gray-400" />}
+        </div>
       </button>
       {expanded && (
-        <div className="px-4 py-3 border-t border-border dark:border-border-dark space-y-4">
+        <div className="px-5 py-4 border-t border-border/50 dark:border-border-dark/50 space-y-5">
           {/* Day Off */}
           <div>
-            <label className="text-sm font-medium block mb-1">{t('dayOff')}</label>
+            <label className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2.5 block">{t('dayOff')}</label>
             <div className="flex flex-wrap gap-2">
-              {DAYS.map(day => (
-                <label
-                  key={day.key}
-                  className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-sm cursor-pointer select-none ${
-                    filters.daysOff.has(day.key)
-                      ? 'bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300'
-                      : 'bg-gray-100 dark:bg-gray-700'
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={filters.daysOff.has(day.key)}
-                    onChange={() => toggleDay(day.key)}
-                    className="sr-only"
-                  />
-                  {lang === 'ar' ? day.ar : day.en}
-                </label>
-              ))}
+              {DAYS.map(day => {
+                const isSelected = filters.daysOff.has(day.key)
+                return (
+                  <label
+                    key={day.key}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-sm cursor-pointer select-none transition-all duration-200 ${
+                      isSelected
+                        ? 'bg-red-50 dark:bg-red-950/35 border-red-200 dark:border-red-900/40 text-red-600 dark:text-red-400 font-semibold'
+                        : 'bg-gray-50 dark:bg-slate-900 border-border/60 dark:border-border-dark/60 text-gray-600 dark:text-gray-400 hover:border-primary/40 dark:hover:border-primary-light/40 hover:bg-gray-100/30'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => toggleDay(day.key)}
+                      className="sr-only"
+                    />
+                    {lang === 'ar' ? day.ar : day.en}
+                  </label>
+                )
+              })}
             </div>
           </div>
 
           {/* Availability */}
           <div>
-            <label className="text-sm font-medium block mb-1">{t('availability')}</label>
-            <div className="flex gap-4">
-              <label className="flex items-center gap-1.5 text-sm cursor-pointer">
+            <label className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2.5 block">{t('availability')}</label>
+            <div className="flex gap-6">
+              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer">
                 <input
                   type="radio"
                   name="availability"
                   checked={filters.availability === 'all'}
                   onChange={() => setFilters(prev => ({ ...prev, availability: 'all' }))}
+                  className="rounded-full text-primary focus:ring-primary border-gray-300 dark:border-gray-700 dark:bg-gray-800"
                 />
                 {t('all')}
               </label>
-              <label className="flex items-center gap-1.5 text-sm cursor-pointer">
+              <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer">
                 <input
                   type="radio"
                   name="availability"
                   checked={filters.availability === 'available_only'}
                   onChange={() => setFilters(prev => ({ ...prev, availability: 'available_only' }))}
+                  className="rounded-full text-primary focus:ring-primary border-gray-300 dark:border-gray-700 dark:bg-gray-800"
                 />
                 {t('availableOnly')}
               </label>
             </div>
           </div>
 
-          {/* Instructor */}
-          <div>
-            <label className="text-sm font-medium block mb-1">{t('instructor')}</label>
-            <div className="relative mb-2">
-              <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400" />
-              <input
-                type="text"
-                value={instructorSearch}
-                onChange={e => setInstructorSearch(e.target.value)}
-                placeholder={t('search')}
-                className="w-full pl-7 pr-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-gray-800"
-              />
+          {/* Side by side searches */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {/* Instructor */}
+            <div>
+              <label className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2 block">{t('instructor')}</label>
+              <div className="relative mb-2">
+                <Search size={14} className="absolute start-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  value={instructorSearch}
+                  onChange={e => setInstructorSearch(e.target.value)}
+                  placeholder={t('search')}
+                  className="w-full ps-9 pe-3 py-2 text-sm rounded-xl border border-border dark:border-border-dark bg-white/50 dark:bg-slate-900/40 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/15 dark:focus:ring-primary-light/10 transition-all duration-200"
+                />
+              </div>
+              <div className="max-h-36 overflow-y-auto space-y-0.5 border border-border/40 dark:border-border-dark/40 rounded-xl p-1 bg-white/20 dark:bg-slate-900/10">
+                {filteredInstructors.map(name => (
+                  <label key={name} className="flex items-center gap-2.5 text-xs font-medium text-gray-600 dark:text-gray-400 cursor-pointer hover:bg-primary/5 dark:hover:bg-primary-light/5 hover:text-primary dark:hover:text-primary-light px-2 py-1.5 rounded-lg transition-all duration-150">
+                    <input
+                      type="checkbox"
+                      checked={filters.instructors.has(name)}
+                      onChange={() => toggleInstructor(name)}
+                      className="rounded border-gray-300 dark:border-gray-700 text-primary focus:ring-primary"
+                    />
+                    <span className="truncate">{name}</span>
+                  </label>
+                ))}
+              </div>
             </div>
-            <div className="max-h-32 overflow-y-auto space-y-0.5">
-              {filteredInstructors.map(name => (
-                <label key={name} className="flex items-center gap-2 text-sm cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 px-1 rounded">
-                  <input
-                    type="checkbox"
-                    checked={filters.instructors.has(name)}
-                    onChange={() => toggleInstructor(name)}
-                    className="rounded"
-                  />
-                  <span className="truncate">{name}</span>
-                </label>
-              ))}
-            </div>
-          </div>
 
-          {/* CRN */}
-          <div>
-            <label className="text-sm font-medium block mb-1">{t('crn')}</label>
-            <div className="relative mb-2">
-              <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400" />
-              <input
-                type="text"
-                value={crnSearch}
-                onChange={e => setCrnSearch(e.target.value)}
-                placeholder={t('search')}
-                className="w-full pl-7 pr-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-gray-800"
-              />
-            </div>
-            <div className="max-h-32 overflow-y-auto space-y-0.5">
-              {filteredCrns.map(crn => (
-                <label key={crn} className="flex items-center gap-2 text-sm cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 px-1 rounded">
-                  <input
-                    type="checkbox"
-                    checked={filters.crns.has(crn)}
-                    onChange={() => toggleCrn(crn)}
-                    className="rounded"
-                  />
-                  <span className="font-mono">{crn}</span>
-                </label>
-              ))}
+            {/* CRN */}
+            <div>
+              <label className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2 block">{t('crn')}</label>
+              <div className="relative mb-2">
+                <Search size={14} className="absolute start-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  value={crnSearch}
+                  onChange={e => setCrnSearch(e.target.value)}
+                  placeholder={t('search')}
+                  className="w-full ps-9 pe-3 py-2 text-sm rounded-xl border border-border dark:border-border-dark bg-white/50 dark:bg-slate-900/40 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/15 dark:focus:ring-primary-light/10 transition-all duration-200"
+                />
+              </div>
+              <div className="max-h-36 overflow-y-auto space-y-0.5 border border-border/40 dark:border-border-dark/40 rounded-xl p-1 bg-white/20 dark:bg-slate-900/10">
+                {filteredCrns.map(crn => (
+                  <label key={crn} className="flex items-center gap-2.5 text-xs font-medium text-gray-600 dark:text-gray-400 cursor-pointer hover:bg-primary/5 dark:hover:bg-primary-light/5 hover:text-primary dark:hover:text-primary-light px-2 py-1.5 rounded-lg transition-all duration-150">
+                    <input
+                      type="checkbox"
+                      checked={filters.crns.has(crn)}
+                      onChange={() => toggleCrn(crn)}
+                      className="rounded border-gray-300 dark:border-gray-700 text-primary focus:ring-primary"
+                    />
+                    <span className="font-mono">{crn}</span>
+                  </label>
+                ))}
+              </div>
             </div>
           </div>
 
           {activeCount > 0 && (
-            <button
-              onClick={clearFilters}
-              className="flex items-center gap-1 text-sm text-red-500 hover:text-red-700"
-            >
-              <X size={14} />
-              {t('clearFilters')}
-            </button>
+            <div className="pt-2 flex justify-end">
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300 bg-red-50/20 hover:bg-red-50/50 dark:hover:bg-red-950/20 border border-red-200/30 dark:border-red-900/30 rounded-xl transition-all duration-200 cursor-pointer shadow-sm"
+              >
+                <X size={14} />
+                {t('clearFilters')}
+              </button>
+            </div>
           )}
         </div>
       )}
