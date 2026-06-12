@@ -33,7 +33,7 @@ export default function TimetableBlock({ section, colorIndex }) {
   return (
     <div
       className={`section-block ${statusClass} ${bgClass} course-text`}
-      aria-label={`${section.course_id} ${sectionLabel} ${section.start_time}-${section.end_time} ${section.teacher} ${section.status}`}
+      aria-label={`${section.course_id} ${sectionLabel} ${section.teacher} ${section.status}`}
     >
       <div className="px-1 pt-1 flex items-center justify-between gap-1">
         <span className="font-bold truncate text-[11px] leading-none">{section.course_id}</span>
