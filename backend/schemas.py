@@ -1,6 +1,5 @@
 import json
 from pydantic import BaseModel, Field, model_validator
-from enum import Enum
 from utils import parse_time_string
 from scraper.fetcher import DEPARTMENT_MAP
 
@@ -8,10 +7,6 @@ from scraper.fetcher import DEPARTMENT_MAP
 This file defines the Pydantic data model for parsing the raw JSON data fetched from the university's website.
 The SectionData model includes a custom validator that handles the messy and inconsistent data formats provided by the university.
 """
-
-class GenderEnum(str, Enum):
-    MALE = "male"
-    FEMALE = "female"
 
 class SectionData(BaseModel):
     crn: str = Field(alias="CRN")
@@ -30,7 +25,7 @@ class SectionData(BaseModel):
     hours: int = Field(alias="Hours")
 
     # Fields that will be parsed and populated by the validator
-    gender: GenderEnum
+    gender: str
     time_slots: str = "[]"
 
     @model_validator(mode="before")
@@ -47,7 +42,7 @@ class SectionData(BaseModel):
 
         # 1. Handle Gender Mapping
         code = data.get("StudentsCode")
-        data["gender"] = GenderEnum.MALE if code == "11" else GenderEnum.FEMALE
+        data["gender"] = "male" if code == "11" else "female"
         
         # 2. Build time slots from raw time and days
         raw_time = data.get("Time", "")
