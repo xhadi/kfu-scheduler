@@ -22,16 +22,4 @@ def parse_time_string(time_str: str) -> tuple[time, time]:
     
     return start_time, end_time
 
-
-def clean_days_string(days_str: str) -> str:
-    """
-    Takes a messy spacing string like "ح   خ" (Sunday, Thursday)
-    And compresses it to a clean, standardized format like "ح,خ"
-    
-    """
-    if not days_str or days_str.strip() == "":
-        return "TBA"
-        
-    # Split by any number of spaces and rejoin with commas
-    day_list = [day.strip() for day in days_str.split() if day.strip()]
-    return ",".join(day_list)
+
