@@ -17,23 +17,20 @@ CREATE TABLE course (
     id VARCHAR(20) PRIMARY KEY,         -- e.g., '0921-120'
     title VARCHAR(255) NOT NULL,        -- e.g., 'مباديء البرمجة'
     hours INTEGER NOT NULL,             -- e.g., 4
-    pre_req VARCHAR(255),               -- Nullable, as not all courses have prerequisites
     department_id VARCHAR(20) NOT NULL,
     FOREIGN KEY (department_id) REFERENCES department(id) ON DELETE CASCADE
 );
 
 -- 4. Sections Table (Lowest Level / Most Granular)
 CREATE TABLE section (
-    crn INTEGER,                         -- e.g., 53210
+    crn VARCHAR(20) NOT NULL,            -- e.g., '53210' (stored as string)
     section_number VARCHAR(10) NOT NULL, -- e.g., "01"
     section_type VARCHAR(20),            -- e.g., "نظري" or "عملي"
     section_status VARCHAR(20),          -- e.g., "متاح" or "ممتلئ"
     course_id VARCHAR(20) NOT NULL,     
     teacher VARCHAR(255),                -- e.g., 'مروان محمد امين الحاج'
     gender VARCHAR(10) NOT NULL CHECK (gender IN ('male', 'female')),
-    start_time TIME NOT NULL,           -- e.g., '09:00:00'
-    end_time TIME NOT NULL,             -- e.g., '10:15:00'
-    days VARCHAR(20) NOT NULL,          -- e.g., 'ح   خ'
+    time_slots TEXT NOT NULL,            -- JSON string: [{"day": "ح", "start": "09:00", "end": "10:15"}]
     PRIMARY KEY (crn, section_number, course_id),
     FOREIGN KEY (course_id) REFERENCES course(id) ON DELETE CASCADE
 );

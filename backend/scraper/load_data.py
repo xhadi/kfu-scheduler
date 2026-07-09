@@ -73,7 +73,7 @@ def load_data_to_db(json_file_path: str | Path):
                 section_type=item.section_type,
                 section_status=item.section_status,
                 teacher=item.teacher,
-                gender=item.gender.value,
+                gender=item.gender,
                 time_slots=item.time_slots
             )
         else:
