@@ -36,34 +36,55 @@ class StaticHTMLSource(Source):
     def _parse_page(self, html: str, sex_code: str) -> List[SectionData]:
         soup = BeautifulSoup(html, "html.parser")
 
-        # Extract department and college names from the header table.
-        dept_name = ""
+        # Extract college name from the first الكلية occurrence.
         college_name = ""
         for td in soup.find_all("td"):
             text = td.get_text(strip=True)
             if re.match(r"الكلية\s*:", text):
                 college_name = re.sub(r"^الكلية\s*:\s*", "", text)
-            elif re.match(r"القسم\s*:", text):
-                dept_name = re.sub(r"^القسم\s*:\s*", "", text)
+                break
 
-        # Find data tables.
-        tables = soup.find_all("table", class_="normaltxt")
-        if not tables:
+        # Find all القسم : blocks with byte positions for per-row dept matching.
+        dept_pattern = r"القسم\s*:\s*([^\n<]+)"
+        dept_blocks = []  # (byte_pos, dept_name)
+        for m in re.finditer(dept_pattern, html):
+            dept_blocks.append((m.start(), m.group(1).strip()))
+
+        # Find all data tables with byte positions using regex.
+        table_pattern = r'<table class="normaltxt"[^>]*>'
+        table_positions = [m.start() for m in re.finditer(table_pattern, html)]
+
+        if len(table_positions) < 1:
             raise ValueError("No table with class 'normaltxt' found")
 
         # Map headers from the first table.
+        tables = soup.find_all("table", class_="normaltxt")
         header_table = tables[0]
         headers = [th.get_text(strip=True) for th in header_table.find_all("td")]
         header_map = self._map_headers(headers)
         if not header_map:
             raise ValueError(f"Unrecognized column headers: {headers}")
 
-        # Reverse name->code map for per-row department names.
-        code_to_name = {code: name for name, code in config.DEPARTMENT_NAME_TO_CODE.items()}
+        # Build a dept_name lookup: byte_pos of each data table -> dept_name.
+        # Skip table_positions[0] (the header table).
+        table_dept_map = {}  # table_byte_pos -> dept_name
+        for tpos in table_positions[1:]:
+            nearest_name = ""
+            for bpos, bname in dept_blocks:
+                if bpos < tpos:
+                    nearest_name = bname
+                else:
+                    break
+            table_dept_map[tpos] = nearest_name
 
         sections: List[SectionData] = []
         skipped_rows = 0
-        for table in tables[1:]:
+        # Iterate data tables (skip index 0 = header).
+        for table_idx, table in enumerate(tables[1:], start=1):
+            # Find the byte position of this table in the raw HTML.
+            table_byte_pos = table_positions[table_idx] if table_idx < len(table_positions) else -1
+            block_dept_name = table_dept_map.get(table_byte_pos, "")
+
             for row in table.find_all("tr"):
                 cells = row.find_all("td")
                 if len(cells) <= max(header_map):
@@ -75,12 +96,12 @@ class StaticHTMLSource(Source):
 
                 # Derive DEPTCode per row: course prefix first, name map as fallback.
                 course_id = raw.get("Course", "")
-                dept_code = course_id.split("-")[0] if course_id else config.DEPARTMENT_NAME_TO_CODE.get(dept_name)
+                dept_code = course_id.split("-")[0] if course_id else ""
 
-                # Add derived / static fields. Dept name follows the per-row code.
+                # Add derived / static fields.
                 raw["StudentsCode"] = sex_code
                 raw["College"] = college_name
-                raw["DEPT"] = code_to_name.get(dept_code, "")
+                raw["DEPT"] = block_dept_name
                 raw["DEPTCode"] = dept_code
 
                 try:
@@ -90,7 +111,7 @@ class StaticHTMLSource(Source):
                     continue
 
         if skipped_rows:
-            print(f"StaticHTMLSource._parse_page skipped {skipped_rows} malformed rows for dept={dept_name}")
+            print(f"StaticHTMLSource._parse_page skipped {skipped_rows} malformed rows")
         return sections
 
     def _map_headers(self, headers: List[str]) -> dict[int, str]:

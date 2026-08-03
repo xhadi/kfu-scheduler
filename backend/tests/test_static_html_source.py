@@ -31,14 +31,14 @@ class TestStaticHTMLSource(unittest.TestCase):
         self.assertEqual(first.section_status, "متاحة")  # "متاحه" normalized
         self.assertEqual(first.course_id, "0901-204")
         self.assertEqual(first.dept_id, "0901")  # course-prefix derivation
-        self.assertEqual(first.dept_name, "")  # unknown code "0901" → empty, not page-level fallback
+        self.assertEqual(first.dept_name, "علوم الحاسب")  # per-block dept name from القسم line
         self.assertEqual(first.college_name, "علوم الحاسب وتقنية المعلومات")
 
         second = sections[1]
         self.assertEqual(second.course_id, "0912-410")
         self.assertEqual(second.dept_id, "0912")  # per-row course-prefix derivation
         self.assertEqual(second.section_status, "غير متاحة")  # "غير متاحه" normalized
-        self.assertEqual(second.dept_name, "نظم المعلومات")  # reverse-map hit for "0912"
+        self.assertEqual(second.dept_name, "علوم الحاسب")  # same block — fixture has one القسم line
 
     def test_unrecognized_headers_raise(self):
         html = """<html><body>
