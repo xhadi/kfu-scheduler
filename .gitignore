@@ -54,4 +54,4 @@ AGENTS.md
 # ==========================================
 # Agent Workspace Cache
 # ==========================================
-frontend/.agents/
+frontend/.agents/.worktrees/
