@@ -10,10 +10,12 @@ from models import ScrapeStatus
 from scraper import config
 from scraper.pipeline import Pipeline, PipelineError
 from scraper.load_data import sync_sections_to_db
-from sqlmodel import Session
+from sqlmodel import Session, SQLModel
 
 
 def main():
+    SQLModel.metadata.create_all(engine)
+
     parser = argparse.ArgumentParser(description="KFU Course Scraper CLI")
     parser.add_argument("--term", default=config.DEFAULT_TERM_CODE, help="Term code, e.g., 144810")
     parser.add_argument("--dry-run", action="store_true", help="Fetch only, do not write to DB")
