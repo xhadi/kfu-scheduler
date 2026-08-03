@@ -48,6 +48,7 @@ class ScrapeStatus(SQLModel, table=True):
     __tablename__ = "scrapestatus"
     id: int = Field(default=1, primary_key=True)
     status: str = Field(default="idle")  # "idle", "running", "completed", "failed"
+    source: Optional[str] = Field(default=None)  # static_html | dynamic_api
     last_run_started: Optional[datetime] = Field(default=None)
     last_run_finished: Optional[datetime] = Field(default=None)
     total_sections_scraped: int = Field(default=0)
