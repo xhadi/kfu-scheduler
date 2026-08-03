@@ -1,6 +1,7 @@
 from typing import List, Optional
 from datetime import datetime
 from sqlmodel import Field, Relationship, SQLModel
+from sqlalchemy import Column, Integer
 
 
 # --- TABLES ---
@@ -46,7 +47,7 @@ class Section(SQLModel, table=True):
 
 class ScrapeStatus(SQLModel, table=True):
     __tablename__ = "scrapestatus"
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: Optional[int] = Field(default=None, sa_column=Column(Integer, primary_key=True, autoincrement=True))
     status: str = Field(default="idle")  # "idle", "running", "completed", "failed"
     source: Optional[str] = Field(default=None)  # static_html | dynamic_api
     last_run_started: Optional[datetime] = Field(default=None)
