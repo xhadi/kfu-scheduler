@@ -1,0 +1,123 @@
+# backend/scraper/sources/static_html.py
+import re
+import time
+from typing import List
+import requests
+from bs4 import BeautifulSoup
+
+from scraper import config
+from scraper.normalizer import normalize_row
+from scraper.sources.base import Source
+from schemas import SectionData
+
+
+class StaticHTMLSource(Source):
+    name = "static_html"
+
+    def _build_url(self, term_code: str, college_code: str, sex_code: str) -> str:
+        return (
+            f"{config.STATIC_BASE_URL}?"
+            f"p_trm_code={term_code}&"
+            f"p_col_code={college_code}&"
+            f"p_sex_code={sex_code}"
+        )
+
+    def _fetch_page(self, term_code: str, college_code: str, sex_code: str) -> List[SectionData]:
+        url = self._build_url(term_code, college_code, sex_code)
+        response = requests.get(url, headers={"User-Agent": "Mozilla/5.0"}, timeout=20)
+        response.raise_for_status()
+        content = response.content
+        try:
+            text = content.decode("utf-8")
+        except UnicodeDecodeError:
+            text = content.decode("windows-1256", errors="replace")
+        return self._parse_page(text, sex_code)
+
+    def _parse_page(self, html: str, sex_code: str) -> List[SectionData]:
+        soup = BeautifulSoup(html, "html.parser")
+
+        # Extract department and college names from the header table.
+        dept_name = ""
+        college_name = ""
+        for td in soup.find_all("td"):
+            text = td.get_text(strip=True)
+            if re.match(r"الكلية\s*:", text):
+                college_name = re.sub(r"^الكلية\s*:\s*", "", text)
+            elif re.match(r"القسم\s*:", text):
+                dept_name = re.sub(r"^القسم\s*:\s*", "", text)
+
+        # Find data tables.
+        tables = soup.find_all("table", class_="normaltxt")
+        if not tables:
+            raise ValueError("No table with class 'normaltxt' found")
+
+        # Map headers from the first table.
+        header_table = tables[0]
+        headers = [th.get_text(strip=True) for th in header_table.find_all("td")]
+        header_map = self._map_headers(headers)
+        if not header_map:
+            raise ValueError(f"Unrecognized column headers: {headers}")
+
+        # Reverse name->code map for per-row department names.
+        code_to_name = {code: name for name, code in config.DEPARTMENT_NAME_TO_CODE.items()}
+
+        sections: List[SectionData] = []
+        skipped_rows = 0
+        for table in tables[1:]:
+            for row in table.find_all("tr"):
+                cells = row.find_all("td")
+                if len(cells) <= max(header_map):
+                    continue
+
+                raw = {}
+                for idx, key in header_map.items():
+                    raw[key] = cells[idx].get_text(strip=True)
+
+                # Derive DEPTCode per row: course prefix first, name map as fallback.
+                course_id = raw.get("Course", "")
+                dept_code = course_id.split("-")[0] if course_id else config.DEPARTMENT_NAME_TO_CODE.get(dept_name)
+
+                # Add derived / static fields. Dept name follows the per-row code.
+                raw["StudentsCode"] = sex_code
+                raw["College"] = college_name
+                raw["DEPT"] = code_to_name.get(dept_code, "")
+                raw["DEPTCode"] = dept_code
+
+                try:
+                    sections.append(normalize_row(raw, source_name=self.name))
+                except Exception:
+                    skipped_rows += 1
+                    continue
+
+        if skipped_rows:
+            print(f"StaticHTMLSource._parse_page skipped {skipped_rows} malformed rows for dept={dept_name}")
+        return sections
+
+    def _map_headers(self, headers: List[str]) -> dict[int, str]:
+        mapping = {
+            "رقم المقرر": "Course",
+            "CRN": "CRN",
+            "الشعبة": "Division",
+            "حالة الشعبة": "Availability",
+            "اسم المقرر": "CourseTitle",
+            "ساعات": "Hours",
+            "الأيام": "Days",
+            "النشاط": "Activity",
+            "الوقت": "Time",
+            "مدرس المادة": "Teacher",
+        }
+        result = {}
+        for idx, header in enumerate(headers):
+            canonical = mapping.get(header)
+            if canonical:
+                result[idx] = canonical
+        return result
+
+    def fetch_all(self, term_code: str) -> List[SectionData]:
+        sections: List[SectionData] = []
+        for college_code in config.COLLEGE_CODES:
+            for sex_code in config.SEX_CODES:
+                page_sections = self._fetch_page(term_code, college_code, sex_code)
+                sections.extend(page_sections)
+                time.sleep(config.REQUEST_DELAY_SECONDS)
+        return sections
