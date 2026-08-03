@@ -37,8 +37,8 @@ class SectionData(BaseModel):
         if dept_code in DEPARTMENT_MAP:
             data["college_id"] = DEPARTMENT_MAP[dept_code]["college_id"]
         else:
-            # Fallback if somehow a new code slipped in, take the first two numbers
-            data["college_id"] = dept_code[:2] if dept_code else "unknown"
+            # Fallback: use caller-provided college_id (from page context), else prefix
+            data["college_id"] = data.get("college_id") or (dept_code[:2] if dept_code else "unknown")
 
         # 1. Handle Gender Mapping
         code = data.get("StudentsCode")

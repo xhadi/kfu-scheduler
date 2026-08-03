@@ -31,9 +31,9 @@ class StaticHTMLSource(Source):
             text = content.decode("utf-8")
         except UnicodeDecodeError:
             text = content.decode("windows-1256", errors="replace")
-        return self._parse_page(text, sex_code)
+        return self._parse_page(text, sex_code, college_code)
 
-    def _parse_page(self, html: str, sex_code: str) -> List[SectionData]:
+    def _parse_page(self, html: str, sex_code: str, college_code: str = "") -> List[SectionData]:
         soup = BeautifulSoup(html, "html.parser")
 
         # Extract college name from the first الكلية occurrence.
@@ -101,6 +101,7 @@ class StaticHTMLSource(Source):
                 # Add derived / static fields.
                 raw["StudentsCode"] = sex_code
                 raw["College"] = college_name
+                raw["college_id"] = college_code
                 raw["DEPT"] = block_dept_name
                 raw["DEPTCode"] = dept_code
 
