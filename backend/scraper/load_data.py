@@ -1,8 +1,9 @@
 import json
 import sys
 from pathlib import Path
-from typing import List
-from sqlmodel import Session, SQLModel, delete
+from typing import List, Dict, Set
+from sqlmodel import Session, SQLModel, delete, col, select
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
@@ -69,6 +70,23 @@ def _dedup_sections(sections: List[SectionData]):
     return unique_colleges, unique_departments, unique_courses, unique_sections
 
 
+def _is_postgresql(db_engine) -> bool:
+    return db_engine.url.drivername.startswith("postgresql")
+
+
+def _bulk_upsert(session, model, rows: list, index_elements: list, update_columns: set):
+    """PostgreSQL bulk upsert via INSERT ... ON CONFLICT DO UPDATE."""
+    if not rows:
+        return
+    values = [r.model_dump() if hasattr(r, "model_dump") else r.__dict__ for r in rows]
+    for v in values:
+        v.pop("_sa_instance_state", None)
+    stmt = pg_insert(model).values(values)
+    update_cols = {col: stmt.excluded[col] for col in update_columns}
+    stmt = stmt.on_conflict_do_update(index_elements=index_elements, set_=update_cols)
+    session.execute(stmt)
+
+
 def sync_sections_to_db(sections: List[SectionData], source_used: str, db_engine=engine):
     """
     Atomically upsert colleges, departments, courses, and sections.
@@ -77,24 +95,47 @@ def sync_sections_to_db(sections: List[SectionData], source_used: str, db_engine
     unique_colleges, unique_departments, unique_courses, unique_sections = _dedup_sections(sections)
 
     active_crns = {item.crn for item in sections}
+    use_bulk = _is_postgresql(db_engine)
 
     with Session(db_engine) as session:
         with session.begin():
-            for college in unique_colleges.values():
-                session.merge(college)
+            if use_bulk:
+                # Preserve existing dept names for empty entries before bulk upsert.
+                dept_ids = [d.id for d in unique_departments.values() if not d.name]
+                if dept_ids:
+                    existing = session.exec(
+                        select(Department).where(col(Department.id).in_(dept_ids))
+                    ).all()
+                    name_map = {row.id: row.name for row in existing}
+                    for dept in unique_departments.values():
+                        if not dept.name and dept.id in name_map:
+                            dept.name = name_map[dept.id]
 
-            for dept in unique_departments.values():
-                if not dept.name:
-                    existing = session.get(Department, dept.id)
-                    if existing:
-                        dept.name = existing.name
-                session.merge(dept)
+                _bulk_upsert(session, College, list(unique_colleges.values()),
+                             ["id"], {"name"})
+                _bulk_upsert(session, Department, list(unique_departments.values()),
+                             ["id"], {"name", "college_id"})
+                _bulk_upsert(session, Course, list(unique_courses.values()),
+                             ["id"], {"title", "hours", "department_id"})
+                _bulk_upsert(session, Section, list(unique_sections.values()),
+                             ["crn", "section_number", "course_id"],
+                             {"section_type", "section_status", "teacher", "gender", "time_slots"})
+            else:
+                for college in unique_colleges.values():
+                    session.merge(college)
 
-            for course in unique_courses.values():
-                session.merge(course)
+                for dept in unique_departments.values():
+                    if not dept.name:
+                        existing = session.get(Department, dept.id)
+                        if existing:
+                            dept.name = existing.name
+                    session.merge(dept)
 
-            for section in unique_sections.values():
-                session.merge(section)
+                for course in unique_courses.values():
+                    session.merge(course)
+
+                for section in unique_sections.values():
+                    session.merge(section)
 
             session.exec(delete(Section).where(Section.crn.not_in(active_crns)))
 
