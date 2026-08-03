@@ -1,7 +1,10 @@
 from collections.abc import Generator
 from pathlib import Path
 from sqlmodel import Session, create_engine
+from dotenv import load_dotenv
 import os
+
+load_dotenv(Path(__file__).resolve().parent / ".env")
 
 # 1. Define the Database URL
 BASE_DIR = Path(__file__).resolve().parent
