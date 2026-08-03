@@ -1,6 +1,6 @@
 import os
 from fastapi import APIRouter, Depends, HTTPException, Header
-from sqlmodel import Session
+from sqlmodel import Session, select
 from database import get_db_session
 from models import ScrapeStatus
 
@@ -24,7 +24,9 @@ def verify_api_key(x_api_key: str = Header(..., alias="X-API-Key")):
 
 @router.get("/status", response_model=ScrapeStatus, dependencies=[Depends(verify_api_key)])
 def get_scraping_status(db: Session = Depends(get_db_session)):
-    status_record = db.get(ScrapeStatus, 1)
+    status_record = db.exec(
+        select(ScrapeStatus).order_by(ScrapeStatus.id.desc())
+    ).first()
     if not status_record:
-        return ScrapeStatus(id=1, status="idle")
+        return ScrapeStatus(status="idle")
     return status_record

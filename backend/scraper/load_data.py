@@ -8,7 +8,7 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 from database import engine
-from models import College, Department, Course, Section, ScrapeStatus
+from models import College, Department, Course, Section
 from schemas import SectionData
 
 
@@ -138,15 +138,6 @@ def sync_sections_to_db(sections: List[SectionData], source_used: str, db_engine
                     session.merge(section)
 
             session.exec(delete(Section).where(Section.crn.not_in(active_crns)))
-
-            status = session.get(ScrapeStatus, 1)
-            if not status:
-                status = ScrapeStatus(id=1)
-                session.add(status)
-            status.status = "completed"
-            status.source = source_used
-            status.total_sections_scraped = len(sections)
-            status.error_message = None
 
 
 def load_data_to_db(json_file_path: str | Path):

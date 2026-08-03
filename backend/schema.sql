@@ -68,9 +68,10 @@ CREATE INDEX idx_course_department ON course(department_id);
 
 -- ============================================================================
 -- 6. SCRAPING STATUS TABLE (Monitoring & GitHub Actions Logs)
+-- Each scrape run inserts a new row; history is preserved.
 -- ============================================================================
 CREATE TABLE scrapestatus (
-    id INTEGER PRIMARY KEY,
+    id SERIAL PRIMARY KEY,                       -- Auto-increment per run
     status VARCHAR(20) NOT NULL DEFAULT 'idle' 
         CHECK (status IN ('idle', 'running', 'completed', 'failed')), -- Current execution state
     source VARCHAR(20) DEFAULT 'static',     -- Tracks strategy used ('static' HTML vs 'api' fallback)

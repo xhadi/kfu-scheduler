@@ -22,13 +22,14 @@ def main():
     args = parser.parse_args()
 
     with Session(engine) as session:
-        status = session.get(ScrapeStatus, 1)
-        if not status:
-            status = ScrapeStatus(id=1)
-            session.add(status)
-        status.status = "running"
-        status.last_run_started = datetime.now(timezone.utc)
+        status = ScrapeStatus(
+            status="running",
+            last_run_started=datetime.now(timezone.utc),
+        )
+        session.add(status)
         session.commit()
+        session.refresh(status)
+        run_id = status.id
 
     try:
         pipeline = Pipeline(args.term)
@@ -38,7 +39,7 @@ def main():
             sync_sections_to_db(result.sections, result.source_used)
 
         with Session(engine) as session:
-            status = session.get(ScrapeStatus, 1)
+            status = session.get(ScrapeStatus, run_id)
             status.status = "completed"
             status.source = result.source_used
             status.last_run_finished = datetime.now(timezone.utc)
@@ -49,7 +50,7 @@ def main():
         print(f"Scraper completed: {result.total_sections} sections from {result.source_used}")
     except (PipelineError, Exception) as exc:
         with Session(engine) as session:
-            status = session.get(ScrapeStatus, 1)
+            status = session.get(ScrapeStatus, run_id)
             status.status = "failed"
             status.last_run_finished = datetime.now(timezone.utc)
             status.error_message = str(exc)

@@ -7,7 +7,7 @@ sys.path.append(str(Path(__file__).resolve().parent.parent))
 from sqlmodel import Session, SQLModel, create_engine
 from scraper.load_data import sync_sections_to_db
 from schemas import SectionData
-from models import College, Department, Course, Section, ScrapeStatus
+from models import College, Department, Course, Section
 
 
 def make_section(crn: str, dept_code: str = "0911", dept_name: str = "علوم الحاسب") -> SectionData:
@@ -43,12 +43,6 @@ class TestLoadData(unittest.TestCase):
             self.assertIsNotNone(session.get(Department, "0911"))
             self.assertIsNotNone(session.get(Course, "0911-101"))
             self.assertIsNotNone(session.get(Section, ("11111", "01", "0911-101")))
-
-            status = session.get(ScrapeStatus, 1)
-            self.assertIsNotNone(status)
-            self.assertEqual(status.status, "completed")
-            self.assertEqual(status.source, "static_html")
-            self.assertEqual(status.total_sections_scraped, 1)
 
     def test_purge_old_crns(self):
         sections_v1 = [make_section("11111"), make_section("22222")]

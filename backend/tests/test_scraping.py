@@ -9,7 +9,7 @@ from fastapi.testclient import TestClient
 from main import app
 from models import ScrapeStatus
 from database import engine
-from sqlmodel import Session, SQLModel
+from sqlmodel import Session, SQLModel, select
 
 
 class TestScrapingStatus(unittest.TestCase):
@@ -17,10 +17,9 @@ class TestScrapingStatus(unittest.TestCase):
         os.environ["SCRAPER_API_KEY"] = "test_secret_key_123"
         SQLModel.metadata.create_all(engine)
         with Session(engine) as session:
-            existing = session.get(ScrapeStatus, 1)
-            if existing:
-                session.delete(existing)
-                session.commit()
+            for row in session.exec(select(ScrapeStatus)).all():
+                session.delete(row)
+            session.commit()
         self.client = TestClient(app)
 
     def test_missing_api_key(self):
