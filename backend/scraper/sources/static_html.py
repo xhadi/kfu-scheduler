@@ -80,7 +80,7 @@ class StaticHTMLSource(Source):
                 # Add derived / static fields. Dept name follows the per-row code.
                 raw["StudentsCode"] = sex_code
                 raw["College"] = college_name
-                raw["DEPT"] = code_to_name.get(dept_code, dept_name)
+                raw["DEPT"] = code_to_name.get(dept_code, "")
                 raw["DEPTCode"] = dept_code
 
                 try:

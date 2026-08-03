@@ -31,7 +31,7 @@ class TestStaticHTMLSource(unittest.TestCase):
         self.assertEqual(first.section_status, "متاحة")  # "متاحه" normalized
         self.assertEqual(first.course_id, "0901-204")
         self.assertEqual(first.dept_id, "0901")  # course-prefix derivation
-        self.assertEqual(first.dept_name, "علوم الحاسب")
+        self.assertEqual(first.dept_name, "")  # unknown code "0901" → empty, not page-level fallback
         self.assertEqual(first.college_name, "علوم الحاسب وتقنية المعلومات")
 
         second = sections[1]
