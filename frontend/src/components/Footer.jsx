@@ -49,11 +49,11 @@ export default function Footer() {
           {/* Left: Timestamp and credit */}
           <div className="text-center sm:text-start">
             <p className="text-sm text-text-secondary dark:text-text-dark-secondary">
-              {text('footer.lastUpdated')}:{' '}
-              {loading ? '...' : relativeTime || initialRelativeTime || text('footer.unknown')}
+              {text('footerLastUpdated')}:{' '}
+              {loading ? '...' : relativeTime || initialRelativeTime || text('footerUnknown')}
             </p>
             <p className="text-sm text-text-secondary dark:text-text-dark-secondary mt-1">
-              {text('footer.developedBy')}
+              {text('footerDevelopedBy')}
             </p>
           </div>
 
@@ -66,7 +66,7 @@ export default function Footer() {
               className="flex items-center gap-2 text-sm text-text-secondary dark:text-text-dark-secondary hover:text-primary dark:hover:text-primary transition-colors"
             >
               <Github size={18} />
-              <span>{text('footer.github')}</span>
+              <span>{text('footerGithub')}</span>
             </a>
             <a
               href="https://t.me/JadwilniBot"
@@ -75,7 +75,7 @@ export default function Footer() {
               className="flex items-center gap-2 text-sm text-text-secondary dark:text-text-dark-secondary hover:text-primary dark:hover:text-primary transition-colors"
             >
               <Send size={18} />
-              <span>{text('footer.contactTelegram')}</span>
+              <span>{text('footerContactTelegram')}</span>
             </a>
           </div>
         </div>

@@ -43,11 +43,9 @@ export const uiText = {
   serverWakingUpDesc: 'يتم إيقاف تشغيل الخادم مؤقتاً عند عدم الاستعمال لتوفير الموارد. يستغرق بدء التشغيل حوالي 50 ثانية. شكراً لانتظارك!',
   estimatedTime: 'الوقت المتبقي المقدر: {seconds} ثانية',
   noCourses: 'لم يتم العثور على مقررات',
-  footer: {
-    lastUpdated: 'آخر تحديث',
-    developedBy: 'تم التطوير بواسطة هادي لطلاب جامعة الملك فيصل',
-    github: 'GitHub',
-    contactTelegram: 'تواصل عبر تليجرام',
-    unknown: 'غير معروف'
-  },
+  footerLastUpdated: 'آخر تحديث',
+  footerDevelopedBy: 'تم التطوير بواسطة هادي لطلاب جامعة الملك فيصل',
+  footerGithub: 'GitHub',
+  footerContactTelegram: 'تواصل عبر تليجرام',
+  footerUnknown: 'غير معروف',
 }
