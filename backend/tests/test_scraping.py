@@ -1,6 +1,6 @@
-import os
 import sys
 import unittest
+from datetime import datetime, timezone
 from pathlib import Path
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))
@@ -14,7 +14,6 @@ from sqlmodel import Session, SQLModel, select
 
 class TestScrapingStatus(unittest.TestCase):
     def setUp(self):
-        os.environ["SCRAPER_API_KEY"] = "test_secret_key_123"
         SQLModel.metadata.create_all(engine)
         with Session(engine) as session:
             for row in session.exec(select(ScrapeStatus)).all():
@@ -22,20 +21,31 @@ class TestScrapingStatus(unittest.TestCase):
             session.commit()
         self.client = TestClient(app)
 
-    def test_missing_api_key(self):
-        response = self.client.get("/api/admin/scraping/status")
-        self.assertEqual(response.status_code, 422)
-
-    def test_invalid_api_key(self):
-        headers = {"X-API-Key": "wrong_key"}
-        response = self.client.get("/api/admin/scraping/status", headers=headers)
-        self.assertEqual(response.status_code, 401)
-
-    def test_status_success(self):
-        headers = {"X-API-Key": "test_secret_key_123"}
-        response = self.client.get("/api/admin/scraping/status", headers=headers)
+    def test_last_update_no_records(self):
+        response = self.client.get("/api/scraping/last-update")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()["status"], "idle")
+        data = response.json()
+        self.assertIsNone(data["last_update"])
+        self.assertEqual(data["status"], "idle")
+
+    def test_last_update_with_record(self):
+        with Session(engine) as session:
+            now = datetime.now(timezone.utc)
+            record = ScrapeStatus(
+                status="completed",
+                source="static_html",
+                last_run_started=now,
+                last_run_finished=now,
+                total_sections_scraped=150,
+            )
+            session.add(record)
+            session.commit()
+
+        response = self.client.get("/api/scraping/last-update")
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertIsNotNone(data["last_update"])
+        self.assertEqual(data["status"], "completed")
 
 
 if __name__ == "__main__":
