@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { Github, Send } from 'lucide-react'
+import { Code, Send } from 'lucide-react'
 import { useUiText } from '../contexts/UiTextContext'
 import { useScrapeStatus } from '../hooks/useScrapeStatus'
 
@@ -65,7 +65,7 @@ export default function Footer() {
               rel="noopener noreferrer"
               className="flex items-center gap-2 text-sm text-text-secondary dark:text-text-dark-secondary hover:text-primary dark:hover:text-primary transition-colors"
             >
-              <Github size={18} />
+              <Code size={18} />
               <span>{text('footerGithub')}</span>
             </a>
             <a
