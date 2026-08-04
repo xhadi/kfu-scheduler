@@ -30,3 +30,9 @@ export async function generateSchedules(courseIds, gender) {
   }
   return res.json()
 }
+
+export async function fetchScrapeStatus() {
+  const res = await fetch(`${API_BASE}/scraping/last-update`)
+  if (!res.ok) throw new Error('Failed to fetch scrape status')
+  return res.json()
+}
