@@ -8,7 +8,7 @@ from database import engine
 import models 
 
 # Import our newly built routers
-from routers import colleges, schedules, scraping
+from routers import colleges, schedules, scrape_status
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -48,7 +48,7 @@ app.add_middleware(
 # This hooks up all the endpoints we wrote in the routers/ folder
 app.include_router(colleges.router)
 app.include_router(schedules.router)
-app.include_router(scraping.router)
+app.include_router(scrape_status.router)
 
 # ==========================================
 # Root Health Check
