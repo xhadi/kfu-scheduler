@@ -1,7 +1,8 @@
 import { ThemeProvider } from './contexts/ThemeContext'
-import { LanguageProvider } from './contexts/LanguageContext'
+import { UiTextProvider } from './contexts/UiTextContext'
 import { ScheduleProvider, useSchedule } from './contexts/ScheduleContext'
 import Header from './components/Header'
+import Footer from './components/Footer'
 import CourseSelectionPage from './components/Step1/CourseSelectionPage'
 import ResultsPage from './components/Step2/ResultsPage'
 
@@ -13,14 +14,17 @@ function AppContent() {
 function App() {
   return (
     <ThemeProvider>
-      <LanguageProvider>
+      <UiTextProvider>
         <ScheduleProvider>
-          <div className="min-h-screen bg-white dark:bg-surface-dark text-text dark:text-text-dark">
+          <div className="min-h-screen flex flex-col bg-white dark:bg-surface-dark text-text dark:text-text-dark">
             <Header />
-            <AppContent />
+            <main className="flex-1">
+              <AppContent />
+            </main>
+            <Footer />
           </div>
         </ScheduleProvider>
-      </LanguageProvider>
+      </UiTextProvider>
     </ThemeProvider>
   )
 }
