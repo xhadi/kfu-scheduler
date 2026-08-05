@@ -47,12 +47,12 @@ DEPARTMENT_MAP = {
     "0914": {"college_id": "09", "dept_id": "CN", "name": "Computer Networks"},
     "0924": {"college_id": "09", "dept_id": "CN", "name": "Computer Networks"},
     # College of Engineering
-    "2000": {"college_id": "20", "dept_id": "GNE", "name": "General Engineering"},
-    "2201": {"college_id": "20", "dept_id": "ME", "name": "Mechanical Engineering"},
-    "2202": {"college_id": "20", "dept_id": "EE", "name": "Electrical Engineering"},
-    "2203": {"college_id": "20", "dept_id": "CE", "name": "Civil Engineering"},
-    "2204": {"college_id": "20", "dept_id": "CHE", "name": "Chemical Engineering"},
-    "2206": {"college_id": "20", "dept_id": "BME", "name": "Biomedical Engineering"},
+    "2200": {"college_id": "22", "dept_id": "GNE", "name": "General Engineering"},
+    "2201": {"college_id": "22", "dept_id": "ME", "name": "Mechanical Engineering"},
+    "2202": {"college_id": "22", "dept_id": "EE", "name": "Electrical Engineering"},
+    "2203": {"college_id": "22", "dept_id": "CE", "name": "Civil Engineering"},
+    "2204": {"college_id": "22", "dept_id": "CHE", "name": "Chemical Engineering"},
+    "2206": {"college_id": "22", "dept_id": "BME", "name": "Biomedical Engineering"},
 }
 
 # Create a 'data' directory inside the scraper folder to store the raw file
