@@ -32,7 +32,7 @@ def send_telegram_alert(message: str, level: str = "warning") -> bool:
     Returns True if the request succeeded, False otherwise.
     """
     token = os.getenv("TELEGRAM_BOT_TOKEN")
-    chat_id = os.getenv("TELEGRAM_CHAT_ID")
+    chat_id = os.getenv("ADMIN_CHAT_ID")
     if not token or not chat_id:
         return False
 
