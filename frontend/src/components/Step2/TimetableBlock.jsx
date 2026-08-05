@@ -1,5 +1,4 @@
 import './schedule.css'
-import { useLanguage } from '../../contexts/LanguageContext'
 import { Check, Users, Lock, HelpCircle } from 'lucide-react'
 
 const STATUS_CLASS = {
@@ -22,12 +21,9 @@ const getStatusIcon = (status) => {
 }
 
 export default function TimetableBlock({ section, colorIndex }) {
-  const { lang } = useLanguage()
   const statusClass = STATUS_CLASS[section.status] || 'status-unknown'
   const bgClass = `course-bg-${colorIndex % 8}`
-  const sectionLabel = lang === 'ar'
-    ? `${section.section_type} #${section.section_number}`
-    : `${section.section_type === 'نظري' ? 'Theory' : 'Practical'} #${section.section_number}`
+  const sectionLabel = `${section.section_type} #${section.section_number}`
   const statusIcon = getStatusIcon(section.status)
 
   return (

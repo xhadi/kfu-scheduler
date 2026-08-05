@@ -1,9 +1,9 @@
 import './schedule.css'
 import WeekGrid from './WeekGrid'
-import { useLanguage } from '../../contexts/LanguageContext'
+import { useUiText } from '../../contexts/UiTextContext'
 
 export default function ScheduleCard({ scheduleId, schedule, courseColorMap }) {
-  const { t } = useLanguage()
+  const { text } = useUiText()
   const crns = schedule.sections.map(s => s.crn)
 
   return (
@@ -31,7 +31,7 @@ export default function ScheduleCard({ scheduleId, schedule, courseColorMap }) {
           <div className="shrink-0 weekgrid-time-col" />
           {['sun','mon','tue','wed','thu'].map(d => (
             <div key={d} className="flex-1 text-center text-xs font-semibold py-1.5 border-l border-border dark:border-border-dark text-gray-500 dark:text-gray-400 uppercase">
-              {t(d)}
+              {text(d)}
             </div>
           ))}
         </div>

@@ -1,18 +1,18 @@
 import { useState, useMemo } from 'react'
-import { useLanguage } from '../../contexts/LanguageContext'
+import { useUiText } from '../../contexts/UiTextContext'
 import { useSchedule } from '../../contexts/ScheduleContext'
 import { Filter, X, Search, ChevronDown, ChevronUp } from 'lucide-react'
 
 const DAYS = [
-  { key: 'sun', ar: 'الأحد', en: 'Sun' },
-  { key: 'mon', ar: 'الاثنين', en: 'Mon' },
-  { key: 'tue', ar: 'الثلاثاء', en: 'Tue' },
-  { key: 'wed', ar: 'الأربعاء', en: 'Wed' },
-  { key: 'thu', ar: 'الخميس', en: 'Thu' },
+  { key: 'sun', label: 'الأحد' },
+  { key: 'mon', label: 'الاثنين' },
+  { key: 'tue', label: 'الثلاثاء' },
+  { key: 'wed', label: 'الأربعاء' },
+  { key: 'thu', label: 'الخميس' },
 ]
 
 export default function FilterBar() {
-  const { lang, t } = useLanguage()
+  const { text } = useUiText()
   const { filters, setFilters, results } = useSchedule()
   const [expanded, setExpanded] = useState(true)
   const [instructorSearch, setInstructorSearch] = useState('')
@@ -95,7 +95,7 @@ export default function FilterBar() {
       >
         <span className="flex items-center gap-2.5 font-semibold text-sm text-gray-700 dark:text-gray-200">
           <Filter size={16} className="text-primary dark:text-primary-light" />
-          <span>{t('dayOff')} / {t('instructor')} / {t('crn')}</span>
+          <span>{text('dayOff')} / {text('instructor')} / {text('crn')}</span>
         </span>
         <div className="flex items-center gap-3">
           {activeCount > 0 && (
@@ -110,7 +110,7 @@ export default function FilterBar() {
         <div className="px-5 py-4 border-t border-border/50 dark:border-border-dark/50 space-y-5">
           {/* Day Off */}
           <div>
-            <label className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2.5 block">{t('dayOff')}</label>
+            <label className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2.5 block">{text('dayOff')}</label>
             <div className="flex flex-wrap gap-2">
               {DAYS.map(day => {
                 const isSelected = filters.daysOff.has(day.key)
@@ -129,7 +129,7 @@ export default function FilterBar() {
                       onChange={() => toggleDay(day.key)}
                       className="sr-only"
                     />
-                    {lang === 'ar' ? day.ar : day.en}
+                    {day.label}
                   </label>
                 )
               })}
@@ -138,7 +138,7 @@ export default function FilterBar() {
 
           {/* Availability */}
           <div>
-            <label className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2.5 block">{t('availability')}</label>
+            <label className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2.5 block">{text('availability')}</label>
             <div className="flex gap-6">
               <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer">
                 <input
@@ -148,7 +148,7 @@ export default function FilterBar() {
                   onChange={() => setFilters(prev => ({ ...prev, availability: 'all' }))}
                   className="rounded-full text-primary focus:ring-primary border-gray-300 dark:border-gray-700 dark:bg-gray-800"
                 />
-                {t('all')}
+                {text('all')}
               </label>
               <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer">
                 <input
@@ -158,7 +158,7 @@ export default function FilterBar() {
                   onChange={() => setFilters(prev => ({ ...prev, availability: 'available_only' }))}
                   className="rounded-full text-primary focus:ring-primary border-gray-300 dark:border-gray-700 dark:bg-gray-800"
                 />
-                {t('availableOnly')}
+                {text('availableOnly')}
               </label>
             </div>
           </div>
@@ -167,14 +167,14 @@ export default function FilterBar() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {/* Instructor */}
             <div>
-              <label className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2 block">{t('instructor')}</label>
+              <label className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2 block">{text('instructor')}</label>
               <div className="relative mb-2">
                 <Search size={14} className="absolute start-3 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input
                   type="text"
                   value={instructorSearch}
                   onChange={e => setInstructorSearch(e.target.value)}
-                  placeholder={t('search')}
+                  placeholder={text('search')}
                   className="w-full ps-9 pe-3 py-2 text-sm rounded-xl border border-border dark:border-border-dark bg-white/50 dark:bg-slate-900/40 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/15 dark:focus:ring-primary-light/10 transition-all duration-200"
                 />
               </div>
@@ -195,14 +195,14 @@ export default function FilterBar() {
 
             {/* CRN */}
             <div>
-              <label className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2 block">{t('crn')}</label>
+              <label className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2 block">{text('crn')}</label>
               <div className="relative mb-2">
                 <Search size={14} className="absolute start-3 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input
                   type="text"
                   value={crnSearch}
                   onChange={e => setCrnSearch(e.target.value)}
-                  placeholder={t('search')}
+                  placeholder={text('search')}
                   className="w-full ps-9 pe-3 py-2 text-sm rounded-xl border border-border dark:border-border-dark bg-white/50 dark:bg-slate-900/40 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-primary/15 dark:focus:ring-primary-light/10 transition-all duration-200"
                 />
               </div>
@@ -230,7 +230,7 @@ export default function FilterBar() {
                 className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-red-500 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300 bg-red-50/20 hover:bg-red-50/50 dark:hover:bg-red-950/20 border border-red-200/30 dark:border-red-900/30 rounded-xl transition-all duration-200 cursor-pointer shadow-sm"
               >
                 <X size={14} />
-                {t('clearFilters')}
+                {text('clearFilters')}
               </button>
             </div>
           )}

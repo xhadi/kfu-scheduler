@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { useLanguage } from '../../contexts/LanguageContext'
+import { useUiText } from '../../contexts/UiTextContext'
 import TimetableBlock from './TimetableBlock'
 
 const DAYS = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس']
@@ -13,14 +13,14 @@ function to12Hour(timeStr) {
 }
 
 export default function TimetableView({ schedule, courseColorMap, active }) {
-  const { t } = useLanguage()
+  const { text } = useUiText()
 
   const dayLabels = {
-    sun: t('sun'),
-    mon: t('mon'),
-    tue: t('tue'),
-    wed: t('wed'),
-    thu: t('thu'),
+    sun: text('sun'),
+    mon: text('mon'),
+    tue: text('tue'),
+    wed: text('wed'),
+    thu: text('thu'),
   }
 
   const slots = useMemo(() => {
@@ -102,7 +102,7 @@ export default function TimetableView({ schedule, courseColorMap, active }) {
         <thead>
           <tr className="bg-gray-50 dark:bg-gray-800 border-b border-border dark:border-border-dark">
             <th className="p-2 text-xs font-medium text-gray-500 border border-border dark:border-border-dark w-28">
-              {t('time')}
+              {text('time')}
             </th>
             {DAYS.map(day => (
               <th key={day} className="p-2 text-sm font-semibold border border-border dark:border-border-dark">

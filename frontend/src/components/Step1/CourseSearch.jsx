@@ -1,10 +1,10 @@
 import { useState, useRef, useEffect } from 'react'
-import { useLanguage } from '../../contexts/LanguageContext'
+import { useUiText } from '../../contexts/UiTextContext'
 import { useSchedule } from '../../contexts/ScheduleContext'
 import { Search, Plus } from 'lucide-react'
 
 export default function CourseSearch({ searchCourses }) {
-  const { t, dir } = useLanguage()
+  const { text, dir } = useUiText()
   const { addCourse, gender } = useSchedule()
   const [query, setQuery] = useState('')
   const [showDropdown, setShowDropdown] = useState(false)
@@ -49,7 +49,7 @@ export default function CourseSearch({ searchCourses }) {
           onChange={(e) => { setQuery(e.target.value); setShowDropdown(true) }}
           onFocus={() => setShowDropdown(true)}
           onKeyDown={handleKeyDown}
-          placeholder={disabled ? t('selectGender') : t('searchPlaceholder')}
+          placeholder={disabled ? text('selectGender') : text('searchPlaceholder')}
           disabled={disabled}
           className="w-full ps-11 pe-4 py-3.5 rounded-xl border border-border dark:border-border-dark bg-white dark:bg-gray-800 shadow-sm focus:shadow-md focus:border-primary dark:focus:border-primary-light focus:ring-4 focus:ring-primary/15 dark:focus:ring-primary-light/10 focus:outline-none transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           dir={dir}
@@ -92,7 +92,7 @@ export default function CourseSearch({ searchCourses }) {
       )}
       {showDropdown && query && results.length === 0 && (
         <div className="absolute z-10 w-full mt-2 backdrop-blur-md bg-white/90 dark:bg-gray-900/90 border border-border/80 dark:border-border-dark/80 rounded-xl shadow-xl p-4 text-center text-gray-500 dark:text-gray-400">
-          {t('noCourses')}
+          {text('noCourses')}
         </div>
       )}
     </div>

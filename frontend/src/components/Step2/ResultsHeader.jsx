@@ -1,10 +1,10 @@
 import { useSchedule } from '../../contexts/ScheduleContext'
-import { useLanguage } from '../../contexts/LanguageContext'
+import { useUiText } from '../../contexts/UiTextContext'
 import { ArrowLeft } from 'lucide-react'
 
 export default function ResultsHeader() {
   const { goBack, currentScheduleIndex, results } = useSchedule()
-  const { t } = useLanguage()
+  const { text } = useUiText()
 
   if (!results) return null
 
@@ -17,10 +17,10 @@ export default function ResultsHeader() {
         className="flex items-center gap-2 text-primary hover:text-primary-dark transition-colors"
       >
         <ArrowLeft size={18} />
-        <span>{t('editCourses')}</span>
+        <span>{text('editCourses')}</span>
       </button>
       <span className="text-sm font-medium">
-        {t('scheduleOf', { current: currentScheduleIndex + 1, total })}
+        {text('scheduleOf', { current: currentScheduleIndex + 1, total })}
       </span>
       <div className="w-24" />
     </div>

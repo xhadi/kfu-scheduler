@@ -1,9 +1,9 @@
-import { useLanguage } from '../../contexts/LanguageContext'
+import { useUiText } from '../../contexts/UiTextContext'
 import { useSchedule } from '../../contexts/ScheduleContext'
 import { X } from 'lucide-react'
 
 export default function WantedList() {
-  const { t } = useLanguage()
+  const { text } = useUiText()
   const { selectedCourses, removeCourse } = useSchedule()
 
   if (selectedCourses.length === 0) return null
@@ -11,7 +11,7 @@ export default function WantedList() {
   return (
     <div className="mt-4">
       <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-3 block">
-        {t('wantedCourses')}
+        {text('wantedCourses')}
       </h3>
       <div className="flex flex-wrap gap-2">
         {selectedCourses.map(course => (
@@ -28,7 +28,7 @@ export default function WantedList() {
             <button
               onClick={() => removeCourse(course.id)}
               className="ms-1.5 p-0.5 rounded-full hover:bg-red-50 dark:hover:bg-red-950/40 text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-all duration-200 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-red-500"
-              aria-label={t('removeCourse')}
+              aria-label={text('removeCourse')}
             >
               <X size={14} />
             </button>

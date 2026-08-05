@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
-import { useLanguage } from '../../contexts/LanguageContext'
+import { useUiText } from '../../contexts/UiTextContext'
 
 export default function CatalogLoader() {
-  const { t, dir } = useLanguage()
+  const { text, dir } = useUiText()
   const [secondsElapsed, setSecondsElapsed] = useState(0)
 
   useEffect(() => {
@@ -18,7 +18,7 @@ export default function CatalogLoader() {
       <div className="flex flex-col items-center justify-center py-12 space-y-4">
         <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
         <p className="text-gray-500 dark:text-gray-400 font-medium animate-pulse">
-          {t('connecting')}
+          {text('connecting')}
         </p>
       </div>
     )
@@ -28,7 +28,7 @@ export default function CatalogLoader() {
   const secondsRemaining = Math.max(50 - secondsElapsed, 1)
 
   // After 3 seconds, show detailed server waking card
-  const timeMessage = t('estimatedTime', { seconds: secondsRemaining })
+  const timeMessage = text('estimatedTime', { seconds: secondsRemaining })
 
   return (
     <div className="w-full max-w-md mx-auto p-6 bg-white dark:bg-gray-800 border border-border dark:border-border-dark rounded-xl shadow-lg transition-all duration-300 animate-fade-in">
@@ -39,11 +39,11 @@ export default function CatalogLoader() {
         </div>
 
         <h3 className="text-lg font-bold text-text dark:text-text-dark">
-          {t('serverWakingUp')}
+          {text('serverWakingUp')}
         </h3>
         
         <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
-          {t('serverWakingUpDesc')}
+          {text('serverWakingUpDesc')}
         </p>
 
         <div className="w-full bg-gray-100 dark:bg-gray-700 h-2.5 rounded-full overflow-hidden mt-2">

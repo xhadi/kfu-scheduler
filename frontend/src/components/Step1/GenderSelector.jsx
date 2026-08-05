@@ -1,9 +1,9 @@
 import { User } from 'lucide-react'
-import { useLanguage } from '../../contexts/LanguageContext'
+import { useUiText } from '../../contexts/UiTextContext'
 import { useSchedule } from '../../contexts/ScheduleContext'
 
 export default function GenderSelector() {
-  const { t } = useLanguage()
+  const { text } = useUiText()
   const { gender, setGender } = useSchedule()
 
   const options = ['male', 'female']
@@ -11,7 +11,7 @@ export default function GenderSelector() {
   return (
     <div
       role="radiogroup"
-      aria-label={t('selectGender')}
+      aria-label={text('selectGender')}
       className="grid grid-cols-2 gap-4 max-w-md mx-auto w-full"
     >
       {options.map((opt) => {
@@ -38,7 +38,7 @@ export default function GenderSelector() {
             >
               <User size={32} aria-hidden="true" />
             </div>
-            <span className="text-base font-bold">{t(opt)}</span>
+            <span className="text-base font-bold">{text(opt)}</span>
           </button>
         )
       })}

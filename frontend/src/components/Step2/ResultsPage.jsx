@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState } from 'react'
 import { useSchedule } from '../../contexts/ScheduleContext'
-import { useLanguage } from '../../contexts/LanguageContext'
+import { useUiText } from '../../contexts/UiTextContext'
 import { ChevronLeft, ChevronRight, Check, Users, Lock } from 'lucide-react'
 import FilterBar from './FilterBar'
 import ScheduleCard from './ScheduleCard'
@@ -10,7 +10,7 @@ const WINDOW = 5
 
 export default function ResultsPage() {
   const { results, filteredOptions, currentScheduleIndex, goBack, courseColorMap } = useSchedule()
-  const { t, lang } = useLanguage()
+  const { text } = useUiText()
   const scrollRef = useRef(null)
   const [page, setPage] = useState(0)
   const [windowStart, setWindowStart] = useState(0)
@@ -33,7 +33,7 @@ export default function ResultsPage() {
   if (!results || results.total_options_found === 0) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-8 text-center">
-        <p className="mt-8 text-gray-500">{t('noResults')}</p>
+        <p className="mt-8 text-gray-500">{text('noResults')}</p>
       </div>
     )
   }
@@ -42,7 +42,7 @@ export default function ResultsPage() {
     return (
       <div className="max-w-4xl mx-auto px-4 py-8">
         <FilterBar />
-        <p className="mt-4 text-center text-gray-500">{t('noFilters')}</p>
+        <p className="mt-4 text-center text-gray-500">{text('noFilters')}</p>
       </div>
     )
   }
@@ -51,11 +51,11 @@ export default function ResultsPage() {
     <div className="px-4 py-2">
       <FilterBar />
       <div className="text-sm text-gray-500 dark:text-gray-400 mb-3 text-center">
-        {t('scheduleCount', { found: results.total_options_found, displayed: filteredOptions.length })}
+        {text('scheduleCount', { found: results.total_options_found, displayed: filteredOptions.length })}
       </div>
       {results.total_options_found > 100 && (
         <div className="mb-3 p-3 bg-yellow-50 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 rounded-lg text-sm">
-          {t('largeResults')}
+          {text('largeResults')}
         </div>
       )}
 
@@ -63,20 +63,14 @@ export default function ResultsPage() {
         <span className="flex items-center gap-1.5">
           <Check size={14} className="text-emerald-600 dark:text-emerald-400" />
           <span className="text-gray-600 dark:text-gray-300">متاحة</span>
-          <span className="text-gray-400 dark:text-gray-500">/</span>
-          <span className="text-gray-400 dark:text-gray-500">Available</span>
         </span>
         <span className="flex items-center gap-1.5">
           <Users size={14} className="text-amber-600 dark:text-amber-400" />
           <span className="text-gray-600 dark:text-gray-300">ممتلئة</span>
-          <span className="text-gray-400 dark:text-gray-500">/</span>
-          <span className="text-gray-400 dark:text-gray-500">Full</span>
         </span>
         <span className="flex items-center gap-1.5">
           <Lock size={13} className="text-red-500 dark:text-red-400" />
           <span className="text-gray-600 dark:text-gray-300">غير متاحة</span>
-          <span className="text-gray-400 dark:text-gray-500">/</span>
-          <span className="text-gray-400 dark:text-gray-500">Not Available</span>
         </span>
       </div>
 
@@ -85,7 +79,7 @@ export default function ResultsPage() {
           onClick={goBack}
           className="px-6 py-2 rounded-lg border border-border dark:border-border-dark hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
         >
-          {t('editCourses')}
+          {text('editCourses')}
         </button>
       </div>
 
@@ -136,7 +130,7 @@ export default function ResultsPage() {
       )}
 
       <div className="md:hidden text-center text-xs text-gray-400 dark:text-gray-500 mb-4 select-none animate-pulse">
-        {lang === 'ar' ? '← اسحب لمشاهدة الجدول كاملاً →' : '← Swipe horizontally to view full schedule →'}
+        ← اسحب لمشاهدة الجدول كاملاً →
       </div>
 
       {/* Schedule list — vertical stack */}
