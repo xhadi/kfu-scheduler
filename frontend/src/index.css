@@ -8,7 +8,9 @@
   --color-surface: #ffffff;
   --color-surface-dark: #0b1329;  
   --color-text: #111827;
-  --color-text-dark: #f3f4f6;     
+  --color-text-dark: #f3f4f6;
+  --color-text-secondary: #6b7280;
+  --color-text-dark-secondary: #9ca3af;
   --color-border: #e5e7eb;
   --color-border-dark: #1e293b;
   --color-cta: #f97316;
