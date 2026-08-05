@@ -7,12 +7,20 @@ FastAPI + SQLModel backend for the KFU Schedule Maker. Provides a REST API for b
 **Prerequisites:** Python 3.12+, pip
 
 ```bash
-# Create and activate virtual environment (Windows)
+# Create virtual environment
 python -m venv .venv
+
+# Activate it
+# Windows (CMD/PowerShell):
 .venv\Scripts\activate
+# macOS/Linux:
+source .venv/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt
+
+# Copy example env file and configure
+cp .env.example .env
 
 # Start the API server (auto-creates SQLite database on startup)
 uvicorn main:app --reload
@@ -22,7 +30,7 @@ python run_scraper.py --term 144810
 python run_scraper.py --term 144810 --dry-run  # fetch only, skip DB write
 ```
 
-The API server runs on `http://localhost:8000`. The Vite frontend dev server (port 5173) proxies `/api` to this address.
+The API server runs on `http://localhost:8000`. The Vite frontend dev server (port 5173) proxies /api to this address — see frontend/README.md
 
 ## API Endpoints
 
@@ -34,15 +42,72 @@ The API server runs on `http://localhost:8000`. The Vite frontend dev server (po
 | GET | `/api/colleges/{college_id}/departments` | Departments for a college |
 | GET | `/api/departments/{dept_id}/courses` | Courses for a department |
 
+**GET `/api/colleges`**
+
+Response:
+```json
+[
+  {"id": "07", "name": "كلية الزراعة وعلوم الأغذية"},
+  {"id": "09", "name": "كلية علوم الحاسب وتقنية المعلومات"}
+]
+```
+
+**GET `/api/colleges/09/departments`**
+
+Response:
+```json
+[
+  {"id": "0911", "name": "علوم الحاسب", "college_id": "09"},
+  {"id": "0921", "name": "هندسة الحاسب", "college_id": "09"}
+]
+```
+
+**GET `/api/departments/0921/courses`**
+
+Response:
+```json
+[
+  {"id": "0921-101", "title": "مقدمة في البرمجة", "hours": 3, "department_id": "0921"},
+  {"id": "0921-120", "title": "برمجة 1", "hours": 4, "department_id": "0921"}
+]
+```
+
 ### Schedule Generator
 
 | Method | Route | Description |
 |--------|-------|-------------|
 | POST | `/api/schedules/generate` | Generate conflict-free schedule combinations |
 
-Request body: `{"course_ids": ["0921-101"], "gender": "male"}`
+Request:
+```json
+{"course_ids": ["0921-101", "0921-120"], "gender": "male"}
+```
 
-The generator uses recursive backtracking with an MRV (Minimum Remaining Values) heuristic. It pre-computes a conflict matrix for bundle pairs, then generates all valid non-conflicting combinations. Theory sections are linked to practical sections via `LINKING_RULES` offsets per college (currently covers CCSIT college `"09"` and Agricultural college `"07"`).
+Response:
+```json
+[
+  [
+    {
+      "crn": "12345",
+      "section_number": "01",
+      "course_id": "0921-101",
+      "section_type": "نظري",
+      "teacher": "د. أحمد",
+      "time_slots": [{"day": "ح", "start": "08:00", "end": "09:15"}]
+    }
+  ]
+]
+```
+
+**Error responses:**
+
+| Status | Condition | Response |
+|--------|-----------|----------|
+| 422 | Invalid request body | `{"detail": [{"type": "missing", "loc": ["body", "course_ids"], ...}]}` |
+| 404 | No sections found for course | `{"detail": "No sections found for course 0921-999"}` |
+| 500 | Internal server error | `{"detail": "Internal server error"}` |
+
+The generator uses recursive backtracking with an MRV (Minimum Remaining Values) heuristic. It pre-computes a conflict matrix for bundle pairs, then generates all valid non-conflicting combinations. Theory sections are linked to practical sections via LINKING_RULES offsets, defined per college for colleges that require theory/practical linking (currently CCSIT "09" and Agricultural "01").
 
 ### Scrape Status
 
@@ -50,13 +115,32 @@ The generator uses recursive backtracking with an MRV (Minimum Remaining Values)
 |--------|-------|-------------|
 | GET | `/api/scraping/last-update` | Latest scrape run status |
 
-Returns: `{"last_update": "2026-08-04T10:05:30", "status": "completed"}`
+Response:
+```json
+{
+  "last_update": "2026-08-04T10:05:30",
+  "status": "completed"
+}
+```
+
+If no scrape records exist:
+```json
+{
+  "last_update": null,
+  "status": "idle"
+}
+```
 
 ### Health Check
 
 | Method | Route | Description |
 |--------|-------|-------------|
 | GET | `/` | Server health status |
+
+Response:
+```json
+{"status": "healthy", "message": "KFU Schedule Maker API is running!"}
+```
 
 ## Scraper Architecture
 
@@ -184,7 +268,7 @@ backend/
 ├── schemas.py                 # Pydantic models for KFU API data parsing
 ├── utils.py                   # Helpers: time parsing, Telegram alerts
 ├── requirements.txt           # Python dependencies
-├── schema.sql                 # Reference SQL DDL (not auto-applied)
+├── schema.sql                 # Reference SQL DDL (SQLModel auto-creates tables at startup via main.py lifespan)
 ├── courses.db                 # Local SQLite database (gitignored)
 ├── .env                       # Environment variables (gitignored)
 │
@@ -237,18 +321,3 @@ The scraper runs automatically via `.github/workflows/scraper.yml`:
 - **Secrets:** `DATABASE_URL`, `TELEGRAM_BOT_TOKEN`, `ADMIN_CHAT_ID`
 
 The workflow installs dependencies from `backend/requirements.txt` and runs `python backend/run_scraper.py`.
-
-## Gotchas
-
-- **WSL builds fail:** `npm run build` must be run from Windows CMD/PowerShell, not WSL, due to native binary issues with rolldown/tailwindcss-oxide
-- **Windows venv:** The virtual environment is Windows-native (`.venv/Scripts/`). Python commands must run via `cmd.exe` from WSL
-- **Section PK is string:** `Section.section_number` is a string (e.g., `"01"`), not an integer
-- **time_slots is JSON:** The `time_slots` field is a JSON string, not a native array. Day abbreviations are Arabic: `ح` (Sun), `ن` (Mon), `ث` (Tue), `ر` (Wed), `خ` (Thu). No Saturday
-- **Gender is string:** `gender` is stored as lowercase string (`"male"`/`"female"`), not an enum
-- **Linking rules limited:** `LINKING_RULES` only covers colleges `"09"` (CCSIT) and `"07"` (Agricultural). Other colleges have no theory-to-practical linking
-- **PostgreSQL connection limits:** Use Transaction mode URL (port 6543) for Supabase to avoid the 15-connection session mode limit
-- **pytest not included:** `pytest` is not in `requirements.txt` and must be installed separately
-- **No lint CI:** There is no lint or typecheck CI pipeline. Only a Firebase Hosting deploy workflow exists
-- **Scraper data directory:** `scraper/data/` and `courses.db` are gitignored. The `university_courses_data.json` file is created by the dynamic API source
-- **Section status values:** Status field maps to Arabic values: `متاحة` (available), `ممتلئة` (full), `غير متاحة` (not available)
-- **Section type values:** `section_type` raw values come from the university API (e.g., `"نظري"`, `"عملي"`, `"ا ختياري"`)
