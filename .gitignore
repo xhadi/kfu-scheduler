@@ -56,3 +56,4 @@ AGENTS.md
 # ==========================================
 frontend/.agents/
 .worktrees/
+.opencode/
