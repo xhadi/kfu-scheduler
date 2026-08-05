@@ -23,5 +23,5 @@ jobs:
           TERM_CODE: ${{ github.event.inputs.term_code || vars.TERM_CODE }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          ADMIN_CHAT_ID: ${{ secrets.ADMIN_CHAT_ID }}
           MIN_SECTIONS_THRESHOLD: ${{ vars.MIN_SECTIONS_THRESHOLD || '1000' }}
