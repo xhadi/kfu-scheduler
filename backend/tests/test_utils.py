@@ -10,7 +10,7 @@ sys.path.append(str(Path(__file__).resolve().parent.parent))
 from utils import send_telegram_alert
 
 class TestTelegramAlert(unittest.TestCase):
-    @patch.dict(os.environ, {"TELEGRAM_BOT_TOKEN": "test_token", "TELEGRAM_CHAT_ID": "test_chat"})
+    @patch.dict(os.environ, {"TELEGRAM_BOT_TOKEN": "test_token", "ADMIN_CHAT_ID": "test_chat"})
     @patch("utils.requests.post")
     def test_send_telegram_alert_success(self, mock_post):
         mock_post.return_value = MagicMock()
@@ -20,7 +20,7 @@ class TestTelegramAlert(unittest.TestCase):
         self.assertTrue(result)
         mock_post.assert_called_once()
 
-    @patch.dict(os.environ, {"TELEGRAM_BOT_TOKEN": "test_token", "TELEGRAM_CHAT_ID": "test_chat"})
+    @patch.dict(os.environ, {"TELEGRAM_BOT_TOKEN": "test_token", "ADMIN_CHAT_ID": "test_chat"})
     @patch("utils.requests.post")
     def test_send_telegram_alert_critical_level(self, mock_post):
         mock_post.return_value = MagicMock()
@@ -38,7 +38,7 @@ class TestTelegramAlert(unittest.TestCase):
         self.assertIn("🚨 CRITICAL", payload["text"])
         self.assertIn("db down", payload["text"])
 
-    @patch.dict(os.environ, {"TELEGRAM_BOT_TOKEN": "test_token", "TELEGRAM_CHAT_ID": "test_chat"})
+    @patch.dict(os.environ, {"TELEGRAM_BOT_TOKEN": "test_token", "ADMIN_CHAT_ID": "test_chat"})
     @patch("utils.requests.post")
     def test_send_telegram_alert_escapes_markdown(self, mock_post):
         mock_post.return_value = MagicMock()
