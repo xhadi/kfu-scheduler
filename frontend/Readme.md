@@ -249,19 +249,3 @@ Filters are applied client-side via `ScheduleContext.filteredOptions`.
 ```bash
 npm run build
 ```
-
-**Important:** Must run from Windows CMD/PowerShell, not WSL. The native binary issue with rolldown/tailwindcss-oxide causes build failures in WSL.
-
-## Gotchas
-
-- **WSL builds fail:** `npm run build` must be run from Windows CMD/PowerShell, not WSL, due to native binary issues with rolldown/tailwindcss-oxide
-- **No router:** Two-step flow managed by `ScheduleContext.step`, not React Router
-- **Arabic-only:** All UI strings are in Arabic. The `text()` function returns the key itself if not found in `uiText.js`
-- **No testing framework:** No test runner configured. Only ESLint for linting
-- **API endpoint hardcoded:** `scheduleApi.js` uses `https://kfu-schedular-api.onrender.com/api`. For local development, Vite proxies `/api` to `localhost:8000`
-- **Dark mode toggle only:** No system option — only light/dark toggle via `ThemeContext`
-- **Session storage:** `useScrapeStatus` caches in sessionStorage (5-minute TTL). Clear browser storage to force refresh
-- **Lucide icons:** Version 1.17.0. Some icons (e.g., `Github`) are not available — use alternatives like `Code`
-- **ESLint config:** Uses flat config format (`eslint.config.js`). `react-refresh/only-export-components` allows specific hook exports
-- **No Saturday:** KFU schedule is Sunday through Thursday only
-- **12-hour format:** Timetable grid uses 12-hour time format
