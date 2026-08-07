@@ -23,12 +23,3 @@ MIN_SECTIONS_THRESHOLD = _env_int("MIN_SECTIONS_THRESHOLD", 1000)
 
 REQUEST_DELAY_SECONDS = 1
 MAX_RETRIES = 3
-
-# Known Arabic department names on the static HTML page mapped to canonical dept IDs.
-# Extend this mapping after inspecting all college pages.
-DEPARTMENT_NAME_TO_CODE = {
-    "علوم الحاسب": "0911",
-    "نظم المعلومات": "0912",
-    "هندسة الحاسب": "0913",
-    "شبكات الحاسب": "0914",
-}

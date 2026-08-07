@@ -38,20 +38,20 @@ CREATE TABLE course (
 -- 4. SECTIONS TABLE (Most Granular Unit for Scheduling)
 -- ============================================================================
 CREATE TABLE section (
-    crn VARCHAR(20) PRIMARY KEY,          -- CRN (Course Reference Number, e.g., '53210')
-                                          -- Single Primary Key: CRN is globally unique in a single active term
+    crn VARCHAR(20) NOT NULL,             -- CRN (Course Reference Number, e.g., '53210')
     section_number VARCHAR(10) NOT NULL,  -- Section code (e.g., '01', '02', '51')
-    section_type VARCHAR(20),             -- Activity type (e.g., 'نظري' [Lecture] or 'عملي' [Lab])
-    section_status VARCHAR(20),           -- Availability state (e.g., 'متاح' [Open] or 'مغلق' [Full])
     course_id VARCHAR(20) NOT NULL,       -- Link to parent course
+    section_type VARCHAR(20),             -- Activity type (e.g., 'نظري' [Lecture] or 'عملي' [Lab])
+    section_status VARCHAR(20),           -- Availability state (e.g., 'متاحة' [Open] or 'ممتلئة' [Full])
     teacher VARCHAR(255) DEFAULT 'غير محدد',-- Instructor name (defaults if unassigned/TBA)
     gender VARCHAR(10) NOT NULL CHECK (gender IN ('male', 'female')), -- Male/Female section filter
-    campus VARCHAR(100),                  -- Location/Branch (e.g., 'طلاب-الأحساء') to prevent cross-campus schedules
     time_slots TEXT NOT NULL,             -- JSON string array storing schedule times:
                                           -- e.g., [{"day": "ح", "start": "09:00", "end": "10:15"}]
     
+    PRIMARY KEY (crn, section_number, course_id),
     FOREIGN KEY (course_id) REFERENCES course(id) ON DELETE CASCADE
 );
+
 
 
 -- ============================================================================
