@@ -1,296 +1,347 @@
 # KFU Scheduler Backend
 
-FastAPI + SQLModel backend for the KFU Schedule Maker. Provides a REST API for browsing university structure (colleges, departments, courses), generating conflict-free schedule combinations, and tracking scrape status. Includes a scraper pipeline that fetches course data from KFU's systems.
+FastAPI + SQLModel backend for the **KFU Schedule Maker**. Provides a REST API for browsing university structure (colleges, departments, courses), generating conflict-free schedule combinations, and tracking scraping execution logs. Includes a dual-source scraping pipeline that fetches and synchronizes course data from King Faisal University (KFU) systems.
+
+---
+
+## Features
+
+- **University Catalog API**: Complete college, department, and course listings.
+- **Combinatorial Schedule Generator**: Generates all valid non-conflicting schedules using recursive backtracking with the **MRV (Minimum Remaining Values)** heuristic and pre-computed conflict matrices.
+- **College Linking Rules**: Auto-pairs theory sections with practical/lab sections based on college offset rules (e.g., CCSIT and Agricultural Sciences).
+- **Resilient Scraper Pipeline**: Dual-strategy catalog ingestion featuring a primary **Static HTML parser** and a fallback **Dynamic WCF API client** with Telegram alert reporting.
+- **Multi-Database Support**: Dual support for local **SQLite** (development) and **PostgreSQL / Supabase** (production bulk upserts).
+
+---
 
 ## Quick Start
 
-**Prerequisites:** Python 3.12+, pip
+### Prerequisites
+- **Python 3.12+** (supported on Windows, macOS, Linux, and WSL)
+- **pip** package manager
+
+### Multi-Platform Installation & Execution
 
 ```bash
-# Create virtual environment
+# 1. Navigate to backend directory
+cd backend
+
+# 2. Create virtual environment
 python -m venv .venv
 
-# Activate it
-# Windows (CMD/PowerShell):
+# 3. Activate virtual environment
+# Windows (CMD / PowerShell):
 .venv\Scripts\activate
-# macOS/Linux:
+# macOS / Linux / WSL:
 source .venv/bin/activate
 
-# Install dependencies
+# 4. Install dependencies
 pip install -r requirements.txt
 
-# Copy example env file and configure
+# 5. Copy example environment configuration
+# macOS / Linux / WSL / PowerShell:
 cp .env.example .env
+# Windows Command Prompt (CMD):
+copy .env.example .env
 
-# Start the API server (auto-creates SQLite database on startup)
+# 6. Run local dev server (auto-creates SQLite database on startup)
 uvicorn main:app --reload
-
-# Run the scraper (optional)
-python run_scraper.py --term 144810
-python run_scraper.py --term 144810 --dry-run  # fetch only, skip DB write
 ```
 
-The API server runs on `http://localhost:8000`. The Vite frontend dev server (port 5173) proxies /api to this address — see frontend/README.md
+The API server runs on `http://localhost:8000`. The Vite frontend dev server (port `5173`) proxies `/api` requests to this backend.
+
+### Multi-Platform Compatibility Notes
+
+- **Path Handling**: All internal paths use Python `pathlib.Path` for native cross-platform compatibility across Windows backslashes (`\`) and POSIX forward slashes (`/`).
+- **Database Engine**: Local SQLite (`courses.db`) operates identically across Windows, macOS, and Linux without native binary dependencies. Production uses PostgreSQL (Supabase).
+- **Encoding**: Network requests and JSON loaders explicitly enforce `UTF-8` with fallback decoding for Arabic `Windows-1256` character sets.
+- **WSL (Windows Subsystem for Linux)**: When running inside WSL, use Linux virtual environment paths (`source .venv/bin/activate`).
+
+
+### Running the Scraper CLI
+
+```bash
+# Fetch latest catalog data and sync to database
+python run_scraper.py --term 144810
+
+# Dry-run mode: fetch and validate without writing to database
+python run_scraper.py --term 144810 --dry-run
+```
+
+---
 
 ## API Endpoints
 
-### University Structure
+### 1. University Structure
 
-| Method | Route | Description |
-|--------|-------|-------------|
-| GET | `/api/colleges` | List all colleges |
-| GET | `/api/colleges/{college_id}/departments` | Departments for a college |
-| GET | `/api/departments/{dept_id}/courses` | Courses for a department |
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/colleges` | List all colleges |
+| `GET` | `/api/colleges/{college_id}/departments` | List departments for a specific college |
+| `GET` | `/api/departments/{dept_id}/courses` | List courses for a specific department |
 
-**GET `/api/colleges`**
-
-Response:
+#### GET `/api/colleges`
 ```json
 [
-  {"id": "07", "name": "كلية الزراعة وعلوم الأغذية"},
-  {"id": "09", "name": "كلية علوم الحاسب وتقنية المعلومات"}
+  {
+    "id": "09",
+    "name": "كلية علوم الحاسب وتقنية المعلومات"
+  },
+  {
+    "id": "01",
+    "name": "كلية العلوم الزراعية والأغذية"
+  }
 ]
 ```
 
-**GET `/api/colleges/09/departments`**
-
-Response:
+#### GET `/api/colleges/09/departments`
 ```json
 [
-  {"id": "0911", "name": "علوم الحاسب", "college_id": "09"},
-  {"id": "0921", "name": "هندسة الحاسب", "college_id": "09"}
+  {
+    "id": "0911",
+    "name": "علوم الحاسب",
+    "college_id": "09"
+  },
+  {
+    "id": "0912",
+    "name": "نظم المعلومات",
+    "college_id": "09"
+  }
 ]
 ```
 
-**GET `/api/departments/0921/courses`**
-
-Response:
+#### GET `/api/departments/0911/courses`
 ```json
 [
-  {"id": "0921-101", "title": "مقدمة في البرمجة", "hours": 3, "department_id": "0921"},
-  {"id": "0921-120", "title": "برمجة 1", "hours": 4, "department_id": "0921"}
+  {
+    "id": "0911-101",
+    "title": "مقدمة في البرمجة",
+    "hours": 4,
+    "department_id": "0911"
+  }
 ]
 ```
 
-### Schedule Generator
+---
 
-| Method | Route | Description |
-|--------|-------|-------------|
-| POST | `/api/schedules/generate` | Generate conflict-free schedule combinations |
+### 2. Schedule Generator
 
-Request:
-```json
-{"course_ids": ["0921-101", "0921-120"], "gender": "male"}
-```
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/api/schedules/generate` | Generate conflict-free schedule combinations |
 
-Response:
-```json
-[
-  [
-    {
-      "crn": "12345",
-      "section_number": "01",
-      "course_id": "0921-101",
-      "section_type": "نظري",
-      "teacher": "د. أحمد",
-      "time_slots": [{"day": "ح", "start": "08:00", "end": "09:15"}]
-    }
-  ]
-]
-```
-
-**Error responses:**
-
-| Status | Condition | Response |
-|--------|-----------|----------|
-| 422 | Invalid request body | `{"detail": [{"type": "missing", "loc": ["body", "course_ids"], ...}]}` |
-| 404 | No sections found for course | `{"detail": "No sections found for course 0921-999"}` |
-| 500 | Internal server error | `{"detail": "Internal server error"}` |
-
-The generator uses recursive backtracking with an MRV (Minimum Remaining Values) heuristic. It pre-computes a conflict matrix for bundle pairs, then generates all valid non-conflicting combinations. Theory sections are linked to practical sections via LINKING_RULES offsets, defined per college for colleges that require theory/practical linking (currently CCSIT "09" and Agricultural "01").
-
-### Scrape Status
-
-| Method | Route | Description |
-|--------|-------|-------------|
-| GET | `/api/scraping/last-update` | Latest scrape run status |
-
-Response:
+#### Request Body
 ```json
 {
-  "last_update": "2026-08-04T10:05:30",
+  "course_ids": ["0911-101", "0912-210"],
+  "gender": "male"
+}
+```
+
+#### Response Payload
+```json
+{
+  "total_options_found": 12,
+  "options": [
+    {
+      "schedule_id": 1,
+      "sections": [
+        {
+          "crn": "53210",
+          "course_id": "0911-101",
+          "course_title": "مقدمة في البرمجة",
+          "section_number": "01",
+          "section_type": "نظري",
+          "teacher": "د. أحمد علي",
+          "gender": "male",
+          "time_slots": [
+            {
+              "day": "ح",
+              "start": "08:00",
+              "end": "09:15"
+            },
+            {
+              "day": "ث",
+              "start": "08:00",
+              "end": "09:15"
+            }
+          ],
+          "status": "متاحة"
+        }
+      ]
+    }
+  ]
+}
+```
+
+#### HTTP Status & Error Codes
+
+| Status | Condition | Example Response |
+|---|---|---|
+| `400` | Missing required payload fields | `{"detail": "Please select at least one course."}` |
+| `422` | Requested course has no sections available | `{"detail": "Course '...' has no sections available for the selected gender."}` |
+
+---
+
+### 3. Monitoring & Health Check
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/scraping/last-update` | Get timestamp and status of the latest scraper run |
+| `GET` | `/` | Health check endpoint |
+
+#### GET `/api/scraping/last-update`
+```json
+{
+  "last_update": "2026-08-07T12:00:00Z",
   "status": "completed"
 }
 ```
 
-If no scrape records exist:
+#### GET `/`
 ```json
 {
-  "last_update": null,
-  "status": "idle"
+  "status": "healthy",
+  "message": "KFU Schedule Maker API is running!"
 }
 ```
 
-### Health Check
+---
 
-| Method | Route | Description |
-|--------|-------|-------------|
-| GET | `/` | Server health status |
+## Architecture & Core Algorithms
 
-Response:
-```json
-{"status": "healthy", "message": "KFU Schedule Maker API is running!"}
+### 1. Schedule Generator Engine
+
+The schedule generator (`routers/schedules.py`) converts requested courses into valid schedule options through a 5-step process:
+
+1. **Section Fetching & Pre-Filtering**: Queries database sections matching `course_id` and selected `gender`.
+2. **Theory-to-Practical Section Linking**: For colleges with strict section pairing rules (`LINKING_RULES`), theory sections are automatically linked with their matching lab sections by applying numerical section number offsets (e.g., Theory `01` + offset `40` = Lab `41`).
+3. **MRV (Minimum Remaining Values) Sorting**: Sorts requested courses by the number of valid bundles ascending to maximize early prune speed in backtracking.
+4. **Pre-Computed Conflict Matrix**: Computes time overlap conflicts across all course bundle pairs prior to recursion. Overlaps are checked per time slot (`day`, `start`, `end`).
+5. **Recursive Backtracking**: Explores non-conflicting bundle combinations and constructs formatted schedule response objects.
+
+### 2. Scraper Pipeline & Strategy Pattern
+
+The scraper system (`scraper/pipeline.py`) orchestrates catalog data retrieval using the Strategy pattern:
+
+```
+                  ┌────────────────────────┐
+                  │      Pipeline.run()    │
+                  └───────────┬────────────┘
+                              │
+               ┌──────────────┴──────────────┐
+               ▼                             ▼
+   ┌───────────────────────┐     ┌───────────────────────┐
+   │   StaticHTMLSource    │     │   DynamicAPISource    │
+   │  (Primary Web Scrape) │     │  (Fallback WCF API)   │
+   └───────────┬───────────┘     └───────────┬───────────┘
+               │                             │
+    Sections >= 1000?                Returns valid JSON?
+       ├── Yes ──> Success              ├── Yes ──> Success
+       └── No  ──> Trigger Fallback ────└── No  ──> Send Telegram Alert
 ```
 
-## Scraper Architecture
+- **StaticHTMLSource** (`scraper/sources/static_html.py`): Primary source. Downloads KFU static HTML schedule pages, parses Arabic tables with BeautifulSoup, and uses regex byte-offset position matching to map section tables to parent department headers.
+- **DynamicAPISource** (`scraper/sources/dynamic_api.py`): Fallback source. Queries KFU's WCF endpoints (`GetCoursesByDept`) per department and gender code.
+- **Alert System** (`utils.py`): Sends Markdown-formatted alerts to Telegram (`TELEGRAM_BOT_TOKEN`, `ADMIN_CHAT_ID`) on pipeline warnings or critical failures, rate-limited to 6 hours.
 
-### Source-Adapter Pattern
+---
 
-The scraper uses a source-adapter pattern with two implementations:
+## Database Architecture
 
-- **StaticHTMLSource** (primary): Parses KFU's Arabic HTML schedule pages. Builds URLs with term/college/sex parameters, uses BeautifulSoup to parse tables, maps Arabic headers to canonical field names, and derives department codes from course ID prefixes.
+### Data Models (SQLModel / ORM)
 
-- **DynamicAPISource** (fallback): Wraps `fetcher.py`, which calls KFU's JSON API endpoint (`GetCoursesByDept`) for each department/gender combination. Saves raw JSON to `scraper/data/`.
+Located in `models.py`:
 
-Both sources implement the `Source` abstract base class with a `fetch_all(term_code)` method.
+- **College**: `id` (PK, e.g. `"09"`), `name` (Arabic title).
+- **Department**: `id` (PK, e.g. `"0911"`), `name`, `college_id` (FK -> `college.id`).
+- **Course**: `id` (PK, e.g. `"0911-101"`), `title`, `hours`, `department_id` (FK -> `department.id`).
+- **Section**: Composite Primary Key `(crn, section_number, course_id)`. Stores `section_type`, `section_status`, `teacher`, `gender` (`"male"` / `"female"`), and `time_slots` (JSON string array `[{"day":"ح","start":"09:00","end":"10:15"}]`).
+- **ScrapeStatus**: Auto-increment `id`, `status` (`"idle"` / `"running"` / `"completed"` / `"failed"`), `source`, `last_run_started`, `last_run_finished`, `total_sections_scraped`, and `error_message`.
 
-### Pipeline
+### Database Engines & Synchronization
 
-The `Pipeline` class orchestrates the scraping process:
+- **SQLite** (Development): Default local engine (`courses.db`). Sync operations use `Session.merge()`.
+- **PostgreSQL** (Production): Deployed on Supabase. `scraper/load_data.py` auto-detects PostgreSQL driver and executes high-performance bulk upserts via `INSERT ... ON CONFLICT DO UPDATE`.
+- **Atomic Sync**: `sync_sections_to_db()` automatically purges CRNs not present in the latest scrape run to maintain fresh catalog state.
 
-1. Try StaticHTMLSource
-   - If sections >= `MIN_SECTIONS_THRESHOLD` → return success
-   - Else → send Telegram warning, try next source
-2. Try DynamicAPISource
-   - If non-empty → return success (with fallback reason)
-3. All failed → send critical Telegram alert → raise `PipelineError`
-
-Telegram warnings are rate-limited to once per 6 hours. The pipeline returns a `PipelineResult` with `sections`, `source_used`, `fallback_reason`, and `total_sections`.
-
-### Normalizer
-
-The normalizer processes raw data before validation:
-
-- `normalize_status(raw)`: Maps Arabic status variants (e.g., `"متاح"` → `"متاحة"`, `"غير متاحه"` → `"غير متاحة"`)
-- `normalize_row(raw, source_name)`: Normalizes `Availability` and `Teacher` fields, then validates into a `SectionData` object
-
-### Configuration
-
-The `scraper/config.py` module provides:
-
-- `COLLEGE_CODES`: Derived from `DEPARTMENT_MAP` in `fetcher.py`
-- `SEX_CODES`: `["11", "12"]` (11=male, 12=female)
-- `DEFAULT_TERM_CODE`: From `TERM_CODE` env var, defaults to `"144810"`
-- `MIN_SECTIONS_THRESHOLD`: From env var, defaults to `1000`
-- `REQUEST_DELAY_SECONDS`: 1 second between requests
-- `DEPARTMENT_NAME_TO_CODE`: Static mapping for CCSIT departments (fallback)
-
-## Database
-
-### Models
-
-The database uses SQLModel (SQLAlchemy + Pydantic) with the following models:
-
-- **College**: `id` (PK, e.g., `"09"`), `name`
-- **Department**: `id` (PK, e.g., `"0921"`), `name`, `college_id` (FK)
-- **Course**: `id` (PK, e.g., `"0921-120"`), `title`, `hours`, `department_id` (FK)
-- **Section**: Composite PK `(crn, section_number, course_id)` — all strings. Fields: `section_type`, `section_status`, `teacher`, `gender` (`"male"`/`"female"`), `time_slots` (JSON string: `[{"day":"ح","start":"09:00","end":"10:15"}]`)
-- **ScrapeStatus**: Auto-increment `id`, `status` (`"idle"`/`"running"`/`"completed"`/`"failed"`), `source`, `last_run_started`, `last_run_finished`, `total_sections_scraped`, `error_message`
-
-### Database Engines
-
-- **Development**: SQLite (`courses.db` in the backend directory, auto-created on startup)
-- **Production**: PostgreSQL via Supabase. The `sync_sections_to_db` function detects PostgreSQL and uses bulk upsert (`INSERT ... ON CONFLICT DO UPDATE`) for performance; SQLite falls back to `session.merge()`
-
-### Data Sync
-
-The `sync_sections_to_db(sections, source_used)` function in `scraper/load_data.py`:
-
-- Atomically upserts colleges, departments, courses, and sections
-- Purges CRNs not present in the current scrape run (stale data removal)
-- Preserves existing department names when the new scrape provides empty names
-- Merges time slots for duplicate section keys during deduplication
+---
 
 ## Environment Variables
 
 | Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `DATABASE_URL` | No | `sqlite:///courses.db` | Database connection string. Supports SQLite (dev) and PostgreSQL (prod). Render's `postgres://` prefix is auto-corrected to `postgresql://`. |
-| `TERM_CODE` | No | `144810` | Default Hijri term code for the scraper. |
-| `MIN_SECTIONS_THRESHOLD` | No | `1000` | Minimum section count for the static HTML source to be considered valid. Falls back to dynamic API if below this. |
-| `TELEGRAM_BOT_TOKEN` | No | (none) | Telegram bot token for sending scrape failure alerts. |
-| `ADMIN_CHAT_ID` | No | (none) | Telegram chat ID for receiving alerts. |
+|---|---|---|---|
+| `DATABASE_URL` | No | `sqlite:///courses.db` | Connection string. Auto-converts legacy Render `postgres://` to `postgresql://`. |
+| `TERM_CODE` | No | `144810` | Hijri term code for catalog scraping. |
+| `MIN_SECTIONS_THRESHOLD` | No | `1000` | Minimum section count threshold for primary static HTML scraper validation. |
+| `TELEGRAM_BOT_TOKEN` | No | *None* | Bot token for Telegram error notifications. |
+| `ADMIN_CHAT_ID` | No | *None* | Target chat ID for Telegram alert delivery. |
 
-The `.env` file is loaded automatically by `python-dotenv` in `database.py`. It is gitignored and should never be committed.
+---
 
 ## Testing
 
-**Framework:** `unittest` (standard library), run via `pytest` (must be installed separately)
+Backend tests are written using standard Python `unittest` and run via `pytest`.
 
 ```bash
-# Install pytest (not in requirements.txt)
-pip install pytest
-
-# Run all tests
+# Run full test suite
 python -m pytest tests/
 
 # Run specific test file
-python -m pytest tests/test_pipeline.py
+python -m pytest tests/test_schedules.py
 
 # Run with verbose output
 python -m pytest tests/ -v
 ```
 
-Tests use in-memory SQLite (`sqlite:///:memory:`) for isolation and `unittest.mock.patch` for external dependencies.
+### Test Suite Structure
 
-### Test Coverage
+| Test File | Description |
+|---|---|
+| [test_config.py](file:///c:/Users/User/Coding/kfu-scheduler/backend/tests/test_config.py) | Tests college code extraction and fallback environment integer parsing. |
+| [test_dynamic_api_source.py](file:///c:/Users/User/Coding/kfu-scheduler/backend/tests/test_dynamic_api_source.py) | Mocks dynamic API client requests and validates SectionData output. |
+| [test_load_data.py](file:///c:/Users/User/Coding/kfu-scheduler/backend/tests/test_load_data.py) | Tests database sync, entity deduplication, CRN purge, and department name preservation. |
+| [test_normalizer.py](file:///c:/Users/User/Coding/kfu-scheduler/backend/tests/test_normalizer.py) | Validates status string normalization and teacher fallback logic. |
+| [test_pipeline.py](file:///c:/Users/User/Coding/kfu-scheduler/backend/tests/test_pipeline.py) | Tests primary source execution, threshold fallback, and alert triggers. |
+| [test_scraping.py](file:///c:/Users/User/Coding/kfu-scheduler/backend/tests/test_scraping.py) | Tests `/api/scraping/last-update` REST endpoint behavior. |
+| [test_source_base.py](file:///c:/Users/User/Coding/kfu-scheduler/backend/tests/test_source_base.py) | Verifies `Source` ABC instantiation constraints. |
+| [test_static_html_source.py](file:///c:/Users/User/Coding/kfu-scheduler/backend/tests/test_static_html_source.py) | Tests static HTML parsing using local HTML sample fixtures. |
+| [test_utils.py](file:///c:/Users/User/Coding/kfu-scheduler/backend/tests/test_utils.py) | Tests Telegram message formatting, Markdown escaping, and API payloads. |
 
-| Test File | What It Tests |
-|-----------|---------------|
-| `test_config.py` | College code derivation, sex codes, env int fallback |
-| `test_dynamic_api_source.py` | DynamicAPISource.fetch_all (mocked fetcher) |
-| `test_load_data.py` | sync_sections_to_db: upsert, CRN purge, dept name preservation |
-| `test_normalizer.py` | Status normalization, row normalization, edge cases |
-| `test_pipeline.py` | Pipeline: static success, fallback, all-fail, below-threshold |
-| `test_scraping.py` | /api/scraping/last-update endpoint (no records, with records) |
-| `test_source_base.py` | Source ABC cannot be instantiated |
-| `test_static_html_source.py` | StaticHTMLSource: URL building, fixture parsing, error handling |
-| `test_utils.py` | Telegram alerts: success, critical level, markdown escaping, missing env |
+---
 
 ## Project Structure
 
 ```
 backend/
-├── main.py                    # FastAPI application entry point
-├── run_scraper.py             # CLI entry point for the scraper pipeline
-├── database.py                # Database engine/session setup
-├── models.py                  # SQLModel ORM models
-├── schemas.py                 # Pydantic models for KFU API data parsing
-├── utils.py                   # Helpers: time parsing, Telegram alerts
+├── main.py                    # FastAPI application entry point & CORS configuration
+├── run_scraper.py             # CLI entry point for running the scraper pipeline
+├── database.py                # Database engine configuration & session dependency
+├── models.py                  # SQLModel ORM table definitions
+├── schemas.py                 # Pydantic models & raw data parsing logic
+├── utils.py                   # Time parsing & Telegram alert helpers
 ├── requirements.txt           # Python dependencies
-├── schema.sql                 # Reference SQL DDL (SQLModel auto-creates tables at startup via main.py lifespan)
-├── courses.db                 # Local SQLite database (gitignored)
-├── .env                       # Environment variables (gitignored)
+├── schema.sql                 # Reference SQL DDL definition
+├── .env.example               # Template environment configuration file
 │
 ├── routers/
-│   ├── colleges.py            # University structure endpoints
-│   ├── schedules.py           # Schedule generator endpoint
-│   └── scrape_status.py       # Scrape status endpoint
+│   ├── colleges.py            # University structure REST endpoints
+│   ├── schedules.py           # Combinatorial schedule generator endpoint
+│   └── scrape_status.py       # Scraper monitoring endpoint
 │
 ├── scraper/
-│   ├── config.py              # Scraper configuration
-│   ├── pipeline.py            # Orchestrator: static → dynamic → alerts
-│   ├── normalizer.py          # Normalizes Arabic status/type fields
-│   ├── fetcher.py             # Dynamic API source + DEPARTMENT_MAP
-│   ├── load_data.py           # DB sync: atomic upsert + CRN purge
+│   ├── config.py              # Scraper constants & threshold configuration
+│   ├── pipeline.py            # Fallback orchestrator & threshold validator
+│   ├── normalizer.py          # Data normalization utilities
+│   ├── fetcher.py             # Dynamic API client & department mapping
+│   ├── load_data.py           # Database sync, deduplication & bulk upsert logic
 │   └── sources/
-│       ├── base.py            # Source ABC (abstract interface)
-│       ├── static_html.py     # StaticHTMLSource (primary)
-│       └── dynamic_api.py     # DynamicAPISource (fallback)
+│       ├── base.py            # Abstract Base Class for sources
+│       ├── static_html.py     # Primary HTML scraper implementation
+│       └── dynamic_api.py     # Fallback API source implementation
 │
 └── tests/
-    ├── fixtures/
-    │   └── sample_static_page.html
+    ├── fixtures/              # Sample HTML page fixtures
     ├── test_config.py
     ├── test_dynamic_api_source.py
     ├── test_load_data.py
@@ -302,22 +353,18 @@ backend/
     └── test_utils.py
 ```
 
-## Deployment
+---
 
-### Production (Render + Supabase)
+## Deployment & CI/CD
 
-- The backend is deployed on Render as a Web Service
-- PostgreSQL database is hosted on Supabase
-- For Supabase: use the Transaction mode URL (port 6543) to avoid the 15-connection session mode limit
-- Set environment variables in Render dashboard: `DATABASE_URL`, `TELEGRAM_BOT_TOKEN`, `ADMIN_CHAT_ID`
+### Production (Render + Supabase PostgreSQL)
 
-### GitHub Actions
+- Deployed as a **Render Web Service** running `uvicorn main:app --host 0.0.0.0 --port $PORT`.
+- Database hosted on **Supabase PostgreSQL**. Note: Use the **Transaction Pooler URL** (`port 6543`) in `DATABASE_URL` to handle concurrent connections smoothly.
 
-The scraper runs automatically via `.github/workflows/scraper.yml`:
+### Automated GitHub Actions Workflow
 
-- **Schedule:** Every 6 hours (`cron: "0 */6 * * *"`)
-- **Manual:** Via `workflow_dispatch` trigger
-- **Environment:** Python 3.12, Ubuntu latest
-- **Secrets:** `DATABASE_URL`, `TELEGRAM_BOT_TOKEN`, `ADMIN_CHAT_ID`
-
-The workflow installs dependencies from `backend/requirements.txt` and runs `python backend/run_scraper.py`.
+Data scraping is automated via `.github/workflows/scraper.yml`:
+- **Schedule**: Executes automatically every 6 hours (`cron: "0 */6 * * *"`).
+- **Manual Trigger**: Supports manual runs via `workflow_dispatch`.
+- Runs `python backend/run_scraper.py --term 144810` against the production `DATABASE_URL`.
