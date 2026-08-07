@@ -10,20 +10,28 @@ const DAYS = [
   { key: 'الخميس', abbrev: 'خ' },
 ]
 
+// Converts HH:MM string to fractional decimal hours (e.g., "08:30" -> 8.5)
 function parseTime(t) {
   const [h, m] = t.split(':').map(Number)
   return h + m / 60
 }
 
+// Converts 24-hour integer to 12-hour AM/PM label (e.g., 14 -> "2:00 PM")
 function to12Hour(h) {
   const period = h >= 12 ? 'PM' : 'AM'
   const hour = h % 12 || 12
   return `${hour}:00 ${period}`
 }
 
-const SLOT_H = 60
+const SLOT_H = 60 // Pixel height per 1-hour grid slot
 
+/**
+ * 5-Day Weekly Timetable Grid (Sunday to Thursday).
+ * Dynamically computes first/last hour bounds from active schedule time slots
+ * and renders absolutely-positioned section blocks.
+ */
 export default function WeekGrid({ schedule, courseColorMap }) {
+
 
   const { firstHour, lastHour, sectionsByDay } = useMemo(() => {
     if (!schedule || !schedule.sections) return { firstHour: 7, lastHour: 20, sectionsByDay: {} }

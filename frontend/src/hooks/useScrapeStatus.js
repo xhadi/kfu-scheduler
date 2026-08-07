@@ -22,8 +22,13 @@ function getCachedStatus() {
   return null
 }
 
+/**
+ * Custom hook for fetching the latest scraper execution timestamp.
+ * Caches results in `sessionStorage` for 5 minutes (`CACHE_TTL`).
+ */
 export function useScrapeStatus() {
   const cached = getCachedStatus()
+
   const [lastUpdate, setLastUpdate] = useState(cached?.lastUpdate ?? null)
   const [status, setStatus] = useState(cached?.status ?? 'idle')
   const [loading, setLoading] = useState(!cached)

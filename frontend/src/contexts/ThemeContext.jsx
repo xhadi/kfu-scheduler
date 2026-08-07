@@ -2,8 +2,13 @@ import { createContext, useContext, useState, useEffect } from 'react'
 
 const ThemeContext = createContext()
 
+/**
+ * Provides application theme state ('light' | 'dark').
+ * Syncs active theme to `localStorage['kfu-theme']` and toggles `.dark` class on <html>.
+ */
 export function ThemeProvider({ children }) {
   const [theme, setTheme] = useState(() => {
+
     return localStorage.getItem('kfu-theme') || 'light'
   })
 

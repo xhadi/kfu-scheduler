@@ -1,12 +1,18 @@
 import { useState, useEffect, useCallback } from 'react'
 import { fetchColleges, fetchDepartments, fetchCourses } from '../api/scheduleApi'
 
+/**
+ * Custom hook for fetching and caching the complete university course catalog.
+ * Executes a 3-tier parallel fetch (Colleges -> Departments -> Courses) on mount
+ * and provides client-side search filtering.
+ */
 export function useCourseCatalog() {
   const [catalog, setCatalog] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [colleges, setColleges] = useState([])
   const [retryTrigger, setRetryTrigger] = useState(0)
+
 
   useEffect(() => {
     let cancelled = false

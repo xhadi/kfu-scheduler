@@ -3,8 +3,14 @@ import { generateSchedules } from '../api/scheduleApi'
 
 const ScheduleContext = createContext()
 
+// Maps filter day keys ('sun', 'mon', etc.) to standard Arabic day abbreviations
 const KEY_TO_ABBREV = { sun: 'ح', mon: 'ن', tue: 'ث', wed: 'ر', thu: 'خ' }
 
+/**
+ * Main application state provider for the schedule generation workflow.
+ * Manages gender selection, target courses, API results, step navigation,
+ * and client-side filtering rules.
+ */
 export function ScheduleProvider({ children }) {
   const [gender, setGender] = useState(null)
   const [selectedCourses, setSelectedCourses] = useState([])
@@ -20,7 +26,12 @@ export function ScheduleProvider({ children }) {
     availability: 'all',
   })
 
+  /**
+   * Client-side filtered list of generated schedules.
+   * Evaluates availability, days off, instructor selection, and CRN rules.
+   */
   const filteredOptions = useMemo(() => {
+
     if (!results) return []
 
     return results.options.filter(schedule => {
