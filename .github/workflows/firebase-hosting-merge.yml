@@ -13,6 +13,10 @@ jobs:
       - uses: actions/checkout@v4
       - run: npm install --prefix frontend && npm run build --prefix frontend
       - uses: FirebaseExtended/action-hosting-deploy@v0
+        env:
+          # Pass your GitHub Secrets into the build step here
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+          VITE_FIREBASE_API_KEY: ${{ secrets.VITE_FIREBASE_API_KEY }}
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_KFU_SCHEDULER }}
