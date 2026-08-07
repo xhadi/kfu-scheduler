@@ -12,9 +12,14 @@ from schemas import SectionData
 
 
 class StaticHTMLSource(Source):
+    """
+    Primary catalog source that parses KFU's public static HTML schedule pages.
+    Extracts section availability, course info, and time slots directly from HTML tables.
+    """
     name = "static_html"
 
     def _build_url(self, term_code: str, college_code: str, sex_code: str) -> str:
+        """Construct the target URL for a given term, college, and gender combination."""
         return (
             f"{config.STATIC_BASE_URL}?"
             f"p_trm_code={term_code}&"
@@ -23,6 +28,7 @@ class StaticHTMLSource(Source):
         )
 
     def _fetch_page(self, term_code: str, college_code: str, sex_code: str) -> List[SectionData]:
+        """Fetch and decode the HTML page for a specific college and gender."""
         url = self._build_url(term_code, college_code, sex_code)
         response = requests.get(url, headers={"User-Agent": "Mozilla/5.0"}, timeout=20)
         response.raise_for_status()
@@ -34,7 +40,12 @@ class StaticHTMLSource(Source):
         return self._parse_page(text, sex_code, college_code)
 
     def _parse_page(self, html: str, sex_code: str, college_code: str = "") -> List[SectionData]:
+        """
+        Parse raw HTML using BeautifulSoup and regex byte-offset matching for departments.
+        Matches department headers to their corresponding section tables in order.
+        """
         soup = BeautifulSoup(html, "html.parser")
+
 
         # Extract college name from the first الكلية occurrence.
         college_name = ""
@@ -116,6 +127,7 @@ class StaticHTMLSource(Source):
         return sections
 
     def _map_headers(self, headers: List[str]) -> dict[int, str]:
+        """Map raw Arabic table header labels to canonical internal field names."""
         mapping = {
             "رقم المقرر": "Course",
             "CRN": "CRN",
@@ -136,7 +148,9 @@ class StaticHTMLSource(Source):
         return result
 
     def fetch_all(self, term_code: str) -> List[SectionData]:
+        """Iterate all configured college and gender codes to fetch and parse every section."""
         sections: List[SectionData] = []
+
         for college_code in config.COLLEGE_CODES:
             for sex_code in config.SEX_CODES:
                 page_sections = self._fetch_page(term_code, college_code, sex_code)

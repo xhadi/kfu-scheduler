@@ -1,3 +1,8 @@
+"""
+CLI entry point for running the KFU course scraper pipeline.
+Supports --term and --dry-run CLI flags, records execution state to ScrapeStatus table.
+"""
+
 import argparse
 import os
 import sys
@@ -14,6 +19,8 @@ from sqlmodel import Session, SQLModel
 
 
 def main():
+    """Execute the scraping pipeline, sync results to database, and log run status."""
+
     SQLModel.metadata.create_all(engine)
 
     parser = argparse.ArgumentParser(description="KFU Course Scraper CLI")

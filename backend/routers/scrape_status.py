@@ -11,6 +11,8 @@ router = APIRouter(
 
 @router.get("/last-update")
 def get_last_scrape_update(db: Session = Depends(get_db_session)):
+    """Returns timestamp of the last finished scrape job and its status."""
+
     status_record = db.exec(
         select(ScrapeStatus).order_by(ScrapeStatus.id.desc())
     ).first()

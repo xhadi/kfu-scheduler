@@ -56,9 +56,8 @@ class SectionData(BaseModel):
         slots = [{"day": d, "start": start_str, "end": end_str} for d in day_list]
         data["time_slots"] = json.dumps(slots) if slots else "[]"
         
-        # 4. Handle Section Type
+        # 3. Handle Section Type
         raw_type = data.get("Activity", "").strip()
         data["section_type"] = raw_type
         
-        
-        return data
+        return data

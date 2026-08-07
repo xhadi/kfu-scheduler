@@ -9,6 +9,7 @@ from utils import send_telegram_alert
 
 
 class PipelineResult(BaseModel):
+    """Encapsulates the successful output of a scraper pipeline execution."""
     sections: List[SectionData]
     source_used: str
     fallback_reason: Optional[str] = None
@@ -16,6 +17,11 @@ class PipelineResult(BaseModel):
 
 
 class Pipeline:
+    """
+    Scraper pipeline manager implementing fallback orchestration.
+    Tries the primary StaticHTMLSource first; falls back to DynamicAPISource if threshold is missed or errors occur.
+    Sends Telegram alerts on failure or degradation.
+    """
     def __init__(self, term_code: str, sources: Optional[List[Source]] = None):
         self.term_code = term_code
         self.sources = sources or [
@@ -33,13 +39,16 @@ class Pipeline:
         return DynamicAPISource()
 
     def _send_warning(self, message: str):
+        """Send a warning alert to Telegram, rate-limited to once every 6 hours."""
         now = datetime.now(timezone.utc)
         if self._last_warning_time is None or (now - self._last_warning_time).total_seconds() > 6 * 3600:
             send_telegram_alert(message, level="warning")
             self._last_warning_time = now
 
     def run(self) -> PipelineResult:
+        """Execute sources in order and return valid PipelineResult or raise PipelineError."""
         last_error: Optional[Exception] = None
+
 
         for idx, source in enumerate(self.sources):
             try:

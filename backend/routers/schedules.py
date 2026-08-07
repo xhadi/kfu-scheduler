@@ -2,7 +2,7 @@ import json
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
 from pydantic import BaseModel
-from typing import Dict, List, Tuple
+from typing import List, Tuple
 from database import get_db_session
 from models import Section, Course
 
@@ -35,6 +35,10 @@ LINKING_RULES = {
 # 2. Helper Functions
 # ==========================================
 def sections_conflict(sec1: Section, sec2: Section) -> bool:
+    """
+    Check if two sections have any overlapping time slot on the same day.
+    Iterates through each section's parsed `_slots` list.
+    """
     for s1 in sec1._slots:
         s1_sm = int(s1["start"][:2]) * 60 + int(s1["start"][3:])
         s1_em = int(s1["end"][:2]) * 60 + int(s1["end"][3:])
@@ -48,6 +52,10 @@ def sections_conflict(sec1: Section, sec2: Section) -> bool:
     return False
 
 def bundles_conflict(bundle1: list, bundle2: list) -> bool:
+    """
+    Check if any section in `bundle1` conflicts with any section in `bundle2`.
+    A bundle can contain a standalone theory section or a linked theory+lab pair.
+    """
     for s1 in bundle1:
         for s2 in bundle2:
             if sections_conflict(s1, s2):
@@ -59,8 +67,12 @@ def generate_combinations(
     current_schedule: List[Tuple[int, int]],
     course_bundles: List[List[List[Section]]],
     all_valid_schedules: List[List[Section]],
-    conflict: Dict[Tuple[int, int, int, int], bool],
+    conflict: dict[Tuple[int, int, int, int], bool],
 ):
+    """
+    Recursive backtracking generator to find all non-conflicting schedule combinations.
+    Uses pre-computed bundle conflict matrix for O(1) conflict lookups.
+    """
     if course_index == len(course_bundles):
         schedule = []
         for ci, bi in current_schedule:
@@ -91,6 +103,10 @@ def generate_combinations(
 # ==========================================
 @router.post("/generate")
 def generate_schedules(request: ScheduleRequest, db: Session = Depends(get_db_session)):
+    """
+    Generate all valid conflict-free schedule combinations for the requested course IDs and gender.
+    Applies theory-to-practical linking rules and MRV sorting before backtracking.
+    """
     if not request.course_ids:
         raise HTTPException(status_code=400, detail="Please select at least one course.")
 

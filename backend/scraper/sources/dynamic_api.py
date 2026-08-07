@@ -8,9 +8,14 @@ from schemas import SectionData
 
 
 class DynamicAPISource(Source):
+    """
+    Fallback catalog source wrapping the university's internal WCF service endpoints.
+    Fetches raw JSON per department/gender and parses them into SectionData objects.
+    """
     name = "dynamic_api"
 
     def fetch_all(self, term_code: str) -> List[SectionData]:
+        """Fetch all course sections from the dynamic API endpoints for the specified term."""
         fetcher.HIJRI_YEAR = term_code[:4]
         json_path = fetcher.fetch_university_courses_data()
 
@@ -18,3 +23,4 @@ class DynamicAPISource(Source):
             raw_rows = json.load(f)
 
         return [SectionData(**row) for row in raw_rows]
+

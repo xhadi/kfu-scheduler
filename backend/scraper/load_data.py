@@ -1,3 +1,9 @@
+"""
+Database loader and synchronization module.
+Deduplicates scraped section entities in memory, handles bulk upsert for PostgreSQL and session merging for SQLite,
+and atomically purges stale section records not present in the current scrape run.
+"""
+
 import json
 import sys
 from pathlib import Path
@@ -10,6 +16,7 @@ sys.path.append(str(Path(__file__).resolve().parent.parent))
 from database import engine
 from models import College, Department, Course, Section
 from schemas import SectionData
+
 
 
 def _dedup_sections(sections: List[SectionData]):
