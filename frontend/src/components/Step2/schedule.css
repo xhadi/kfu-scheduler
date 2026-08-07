@@ -76,14 +76,9 @@
 .dark .course-text-secondary { color: #e2e8f0; }
 .dark .course-text-tertiary  { color: #cbd5e1; }
 
-/* Status selectors (borders removed in favor of icons) */
-.status-available {}
-.status-full {}
-.status-not-available {}
-.status-unknown {}
-
 /* WeekGrid time column */
 .weekgrid-time-col { width: 64px; }
+
 
 /* Section block */
 .section-block {

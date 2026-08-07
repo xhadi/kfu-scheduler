@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useSchedule } from '../../contexts/ScheduleContext'
 import { useUiText } from '../../contexts/UiTextContext'
 import { ChevronLeft, ChevronRight, Check, Users, Lock } from 'lucide-react'
@@ -8,10 +8,14 @@ import ScheduleCard from './ScheduleCard'
 const PAGE_SIZE = 50
 const WINDOW = 5
 
+/**
+ * Step 2 Results Page.
+ * Displays client-side filtered and paginated schedule results (50 items per page)
+ * rendered as vertical ScheduleCard elements with custom course color mapping.
+ */
 export default function ResultsPage() {
-  const { results, filteredOptions, currentScheduleIndex, goBack, courseColorMap } = useSchedule()
+  const { results, filteredOptions, goBack, courseColorMap } = useSchedule()
   const { text } = useUiText()
-  const scrollRef = useRef(null)
   const [page, setPage] = useState(0)
   const [windowStart, setWindowStart] = useState(0)
 
@@ -20,15 +24,6 @@ export default function ResultsPage() {
   const pageOptions = filteredOptions.slice(safePage * PAGE_SIZE, (safePage + 1) * PAGE_SIZE)
 
   const visiblePages = Array.from({ length: Math.min(WINDOW, totalPages) }, (_, i) => windowStart + i)
-
-  useEffect(() => {
-    const container = scrollRef.current
-    if (!container) return
-    const card = container.children[currentScheduleIndex]
-    if (card) {
-      card.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
-    }
-  }, [currentScheduleIndex])
 
   if (!results || results.total_options_found === 0) {
     return (
@@ -77,7 +72,7 @@ export default function ResultsPage() {
       <div className="text-center mb-3">
         <button
           onClick={goBack}
-          className="px-6 py-2 rounded-lg border border-border dark:border-border-dark hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+          className="px-6 py-2 rounded-lg border border-border dark:border-border-dark hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer"
         >
           {text('editCourses')}
         </button>
@@ -134,7 +129,7 @@ export default function ResultsPage() {
       </div>
 
       {/* Schedule list — vertical stack */}
-      <div ref={scrollRef} className="flex flex-col gap-4 pb-4">
+      <div className="flex flex-col gap-4 pb-4">
         {pageOptions.map((schedule) => (
           <div key={schedule.schedule_id}>
             <ScheduleCard

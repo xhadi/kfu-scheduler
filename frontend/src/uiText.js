@@ -11,8 +11,8 @@ export const uiText = {
   back: 'رجوع',
   search: '...بحث',
   editCourses: 'تعديل المواد',
-  scheduleOf: 'الجدول {current} من {total}',
   dayOff: 'يوم إجازة',
+
   instructor: 'الدكتور',
   crn: 'الرقم المرجعي',
   noResults: 'لم يتم العثور على جداول متوافقة',
