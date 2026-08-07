@@ -1,4 +1,6 @@
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api"
+const API_BASE = import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? "/api" : "https://kfu-schedular-api.onrender.com/api")
+
+
 
 export async function fetchColleges() {
   const res = await fetch(`${API_BASE}/colleges`)
