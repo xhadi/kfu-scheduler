@@ -15,11 +15,22 @@ load_dotenv(Path(__file__).resolve().parent / ".env")
 
 # 1. Define the Database URL
 BASE_DIR = Path(__file__).resolve().parent
-DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{BASE_DIR}/courses.db")
+raw_url = os.getenv("DATABASE_URL", "").strip()
 
-# Fix for Render's legacy postgres:// protocol string
+# Remove surrounding quotes if present in env var or GitHub Secret
+if (raw_url.startswith('"') and raw_url.endswith('"')) or (raw_url.startswith("'") and raw_url.endswith("'")):
+    raw_url = raw_url[1:-1].strip()
+
+# Fallback to local SQLite if DATABASE_URL is not set or empty
+if not raw_url:
+    DATABASE_URL = f"sqlite:///{BASE_DIR}/courses.db"
+else:
+    DATABASE_URL = raw_url
+
+# Fix for Render/Supabase legacy postgres:// protocol string
 if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
 
 connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
 
