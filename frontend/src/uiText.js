@@ -12,7 +12,6 @@ export const uiText = {
   search: '...بحث',
   editCourses: 'تعديل المواد',
   dayOff: 'يوم إجازة',
-
   instructor: 'الدكتور',
   crn: 'الرقم المرجعي',
   noResults: 'لم يتم العثور على جداول متوافقة',
@@ -37,7 +36,7 @@ export const uiText = {
   availability: 'الحالة',
   all: 'الكل',
   availableOnly: 'متاحة فقط',
-  scheduleCount: 'تم العثور على {found} جدول، يتم عرض {displayed} منهم',
+  scheduleCount: 'تم العثور على {found} جدول',
   connecting: 'جاري الاتصال بالخادم...',
   serverWakingUp: 'الخادم يستيقظ من الخمول...',
   serverWakingUpDesc: 'يتم إيقاف تشغيل الخادم مؤقتاً عند عدم الاستعمال لتوفير الموارد. يستغرق بدء التشغيل حوالي 50 ثانية. شكراً لانتظارك!',

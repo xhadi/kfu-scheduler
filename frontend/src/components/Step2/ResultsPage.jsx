@@ -46,7 +46,7 @@ export default function ResultsPage() {
     <div className="px-4 py-2">
       <FilterBar />
       <div className="text-sm text-gray-500 dark:text-gray-400 mb-3 text-center">
-        {text('scheduleCount', { found: results.total_options_found, displayed: filteredOptions.length })}
+        {text('scheduleCount', { found: results.total_options_found })}
       </div>
       {results.total_options_found > 100 && (
         <div className="mb-3 p-3 bg-yellow-50 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 rounded-lg text-sm">
