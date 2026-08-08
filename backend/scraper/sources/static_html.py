@@ -31,14 +31,23 @@ class StaticHTMLSource(Source):
     def _fetch_page(self, term_code: str, college_code: str, sex_code: str) -> List[SectionData]:
         """Fetch and decode the HTML page for a specific college and gender."""
         url = self._build_url(term_code, college_code, sex_code)
+        
         session = requests.Session()
+        
         session.headers.update({
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
             "Accept-Language": "ar,en-US;q=0.9,en;q=0.8",
         })
+        
+        # Prime cookies by hitting the portal landing page first
+        session.get("https://ssb-ar.kfu.edu.sa/", timeout=20)
+        
         try:
-            response = session.get(url, timeout=20)
+            response = session.get(
+                url,
+                headers={"Referer": "https://ssb-ar.kfu.edu.sa/"},
+                timeout=20)
         except requests.exceptions.TooManyRedirects as e:
             if e.response is not None and e.response.history:
                 for r in e.response.history[:5]:
