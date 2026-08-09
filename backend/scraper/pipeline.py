@@ -26,7 +26,7 @@ class Pipeline:
         self.term_code = term_code
         self.sources = sources or [
             self._load_static_source(),
-            #self._load_dynamic_source(),
+            self._load_dynamic_source(),
         ]
         self._last_warning_time: Optional[datetime] = None
 
@@ -34,9 +34,9 @@ class Pipeline:
         from scraper.sources.static_html import StaticHTMLSource
         return StaticHTMLSource()
 
-    #def _load_dynamic_source(self) -> Source:
-    #    from scraper.sources.dynamic_api import DynamicAPISource
-    #    return DynamicAPISource()
+    def _load_dynamic_source(self) -> Source:
+        from scraper.sources.dynamic_api import DynamicAPISource
+        return DynamicAPISource()
 
     def _send_warning(self, message: str):
         """Send a warning alert to Telegram, rate-limited to once every 6 hours."""

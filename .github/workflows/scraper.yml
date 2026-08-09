@@ -21,8 +21,8 @@ jobs:
           pip install -r backend/requirements.txt
           python backend/run_scraper.py
         env:
-          TERM_CODE: ${{ github.event.inputs.term_code || vars.TERM_CODE }}
+          TERM_CODE: ${{ github.event.inputs.term_code || vars.TERM_CODE || '144810' }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           ADMIN_CHAT_ID: ${{ secrets.ADMIN_CHAT_ID }}
-          MIN_SECTIONS_THRESHOLD: ${{ vars.MIN_SECTIONS_THRESHOLD || '5000' }}
+          MIN_SECTIONS_THRESHOLD: ${{ vars.MIN_SECTIONS_THRESHOLD || '1000' }}

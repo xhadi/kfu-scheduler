@@ -47,12 +47,18 @@ class StaticHTMLSource(Source):
             response = session.get(
                 url,
                 headers={"Referer": "https://ssb-ar.kfu.edu.sa/"},
-                timeout=20)
+                timeout=20,
+            )
+            response.raise_for_status()
         except requests.exceptions.TooManyRedirects as e:
             if e.response is not None and e.response.history:
                 for r in e.response.history[:5]:
                     print(r.status_code, r.url)
             raise
+        except requests.exceptions.RequestException as e:
+            print(f"HTTP request failed for {url}: {e}")
+            raise
+
         content = response.content
         try:
             text = content.decode("utf-8")
@@ -66,7 +72,6 @@ class StaticHTMLSource(Source):
         Matches department headers to their corresponding section tables in order.
         """
         soup = BeautifulSoup(html, "html.parser")
-
 
         # Extract college name from the first الكلية occurrence.
         college_name = ""
@@ -87,7 +92,8 @@ class StaticHTMLSource(Source):
         table_positions = [m.start() for m in re.finditer(table_pattern, html)]
 
         if len(table_positions) < 1:
-            raise ValueError("No table with class 'normaltxt' found")
+            snippet = html[:200].replace("\n", " ").strip()
+            raise ValueError(f"No table with class 'normaltxt' found. HTML snippet: {snippet}")
 
         # Map headers from the first table.
         tables = soup.find_all("table", class_="normaltxt")
@@ -174,7 +180,18 @@ class StaticHTMLSource(Source):
 
         for college_code in config.COLLEGE_CODES:
             for sex_code in config.SEX_CODES:
-                page_sections = self._fetch_page(term_code, college_code, sex_code)
-                sections.extend(page_sections)
+                last_exc = None
+                for attempt in range(1, config.MAX_RETRIES + 1):
+                    try:
+                        page_sections = self._fetch_page(term_code, college_code, sex_code)
+                        sections.extend(page_sections)
+                        last_exc = None
+                        break
+                    except Exception as exc:
+                        last_exc = exc
+                        if attempt < config.MAX_RETRIES:
+                            time.sleep(attempt * 2)
+                if last_exc is not None:
+                    raise last_exc
                 time.sleep(config.REQUEST_DELAY_SECONDS)
         return sections

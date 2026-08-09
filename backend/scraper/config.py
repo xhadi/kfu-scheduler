@@ -9,7 +9,7 @@ COLLEGE_CODES = sorted({info["college_id"] for info in DEPARTMENT_MAP.values()})
 
 SEX_CODES = ["11", "12"]
 
-DEFAULT_TERM_CODE = os.getenv("TERM_CODE", "144810")
+DEFAULT_TERM_CODE = (os.getenv("TERM_CODE") or "144810").strip()
 
 
 def _env_int(name: str, default: int) -> int:
