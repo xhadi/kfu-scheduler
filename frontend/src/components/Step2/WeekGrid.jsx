@@ -69,16 +69,41 @@ export default function WeekGrid({ schedule, courseColorMap }) {
     <div className="overflow-hidden rounded-b-lg" dir="ltr">
       <div className="flex bg-white dark:bg-gray-900">
         {/* Time column */}
-        <div className="shrink-0 weekgrid-time-col relative" style={{ height: gridH }}>
+        <div className="shrink-0 weekgrid-time-col relative select-none" style={{ height: gridH }}>
           {hours.map(h => (
-            <div
-              key={h}
-              className="absolute w-full text-[10px] text-gray-400 text-end pe-1.5 -translate-y-1/2 border-t border-border dark:border-border-dark"
-              style={{ top: (h - firstHour) * SLOT_H, height: SLOT_H }}
-            >
-              {to12Hour(h)}
+            <div key={h}>
+              {/* Solid Hour Line & Label */}
+              <div
+                className="absolute left-0 right-0 border-t border-border dark:border-border-dark"
+                style={{ top: (h - firstHour) * SLOT_H }}
+              />
+              <div
+                className="absolute w-full text-[10px] font-medium text-gray-500 dark:text-gray-400 text-end pe-1.5 -translate-y-1/2 pointer-events-none"
+                style={{ top: (h - firstHour) * SLOT_H }}
+              >
+                {to12Hour(h)}
+              </div>
+
+              {/* Dashed Half-Hour Label */}
+              <div
+                className="absolute w-full text-[9px] text-gray-400 dark:text-gray-500 text-end pe-1.5 -translate-y-1/2 pointer-events-none"
+                style={{ top: (h - firstHour + 0.5) * SLOT_H }}
+              >
+                :30
+              </div>
             </div>
           ))}
+          {/* Closing Hour Line & Label at bottom boundary */}
+          <div
+            className="absolute left-0 right-0 border-t border-border dark:border-border-dark"
+            style={{ top: totalH * SLOT_H }}
+          />
+          <div
+            className="absolute w-full text-[10px] font-medium text-gray-500 dark:text-gray-400 text-end pe-1.5 -translate-y-1/2 pointer-events-none"
+            style={{ top: totalH * SLOT_H }}
+          >
+            {to12Hour(lastHour)}
+          </div>
         </div>
 
         {/* Day columns */}
