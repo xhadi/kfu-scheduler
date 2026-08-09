@@ -3,7 +3,7 @@
 <div align="center">
 
 [![Web App Status](https://img.shields.io/website?url=https%3A%2F%2Fkfu-scheduler.web.app&up_message=online%20%28live%29&down_message=offline&label=Web%20App&color=0d9488)](https://kfu-scheduler.web.app)
-[![Backend API Status](https://img.shields.io/website?url=https%3A%2F%2Fkfu-schedular-api.onrender.com&up_message=online%20%28healthy%29&down_message=offline&label=Render%20API&color=10b981)](https://kfu-schedular-api.onrender.com)
+[![Backend API Status](https://img.shields.io/badge/Render%20API-online%20%28healthy%29-10b981)](https://kfu-schedular-api.onrender.com)
 [![Database Status](https://img.shields.io/badge/Supabase-PostgreSQL%20Active-emerald?style=flat&logo=supabase)](https://supabase.com)
 [![Scraper Pipeline](https://github.com/xhadi/kfu-schedular/actions/workflows/scraper.yml/badge.svg)](https://github.com/xhadi/kfu-schedular/actions/workflows/scraper.yml)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)

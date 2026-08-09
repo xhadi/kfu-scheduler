@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo } from 'react'
-import { Code, Send } from 'lucide-react'
 import githubIcon from '../assets/github.png'
 import telegramIcon from '../assets/telegram.png'
 import { useUiText } from '../contexts/UiTextContext'
