@@ -1,5 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { Code, Send } from 'lucide-react'
+import githubIcon from '../assets/github.png'
+import telegramIcon from '../assets/telegram.png'
 import { useUiText } from '../contexts/UiTextContext'
 import { useScrapeStatus } from '../hooks/useScrapeStatus'
 
@@ -13,10 +15,16 @@ function formatRelativeTime(date) {
   const diffHours = Math.floor(diffMinutes / 60)
   const diffDays = Math.floor(diffHours / 24)
 
+  const formatUnit = (value, singular, dual, plural) => {
+    if (value === 1) return `${value} ${singular}`
+    if (value === 2) return `${value} ${dual}`
+    return `${value} ${plural}`
+  }
+
   if (diffMinutes < 1) return 'الآن'
-  if (diffMinutes < 60) return `منذ ${diffMinutes} دقيقة`
-  if (diffHours < 24) return `منذ ${diffHours} ساعة`
-  return `منذ ${diffDays} يوم`
+  if (diffMinutes < 60) return `منذ ${formatUnit(diffMinutes, 'دقيقة', 'دقيقتان', 'دقائق')}`
+  if (diffHours < 24) return `منذ ${formatUnit(diffHours, 'ساعة', 'ساعتان', 'ساعات')}`
+  return `منذ ${formatUnit(diffDays, 'يوم', 'يومان', 'أيام')}`
 }
 
 export default function Footer() {
@@ -65,7 +73,7 @@ export default function Footer() {
               rel="noopener noreferrer"
               className="flex items-center gap-2 text-sm text-text-secondary dark:text-text-dark-secondary hover:text-primary dark:hover:text-primary transition-colors"
             >
-              <Code size={18} />
+              <img src={githubIcon} alt="GitHub" className="w-4 h-4" />
               <span>{text('footerGithub')}</span>
             </a>
             <a
@@ -74,7 +82,7 @@ export default function Footer() {
               rel="noopener noreferrer"
               className="flex items-center gap-2 text-sm text-text-secondary dark:text-text-dark-secondary hover:text-primary dark:hover:text-primary transition-colors"
             >
-              <Send size={18} />
+              <img src={telegramIcon} alt="Telegram" className="w-4 h-4" />
               <span>{text('footerContactTelegram')}</span>
             </a>
           </div>
