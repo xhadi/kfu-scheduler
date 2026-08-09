@@ -78,7 +78,9 @@ export default function WeekGrid({ schedule, courseColorMap }) {
                 style={{ top: (h - firstHour) * SLOT_H }}
               />
               <div
-                className="absolute w-full text-[10px] font-medium text-gray-500 dark:text-gray-400 text-end pe-1.5 -translate-y-1/2 pointer-events-none"
+                className={`absolute w-full text-[10px] font-medium text-gray-500 dark:text-gray-400 text-end pe-1.5 ${
+                  h === firstHour ? 'translate-y-0' : '-translate-y-1/2'
+                } pointer-events-none`}
                 style={{ top: (h - firstHour) * SLOT_H }}
               >
                 {to12Hour(h)}
@@ -99,7 +101,7 @@ export default function WeekGrid({ schedule, courseColorMap }) {
             style={{ top: totalH * SLOT_H }}
           />
           <div
-            className="absolute w-full text-[10px] font-medium text-gray-500 dark:text-gray-400 text-end pe-1.5 -translate-y-1/2 pointer-events-none"
+            className="absolute w-full text-[10px] font-medium text-gray-500 dark:text-gray-400 text-end pe-1.5 -translate-y-full pointer-events-none"
             style={{ top: totalH * SLOT_H }}
           >
             {to12Hour(lastHour)}
@@ -119,10 +121,9 @@ export default function WeekGrid({ schedule, courseColorMap }) {
                 {hours.map(h => (
                   <div
                     key={`${day.key}-${h}`}
-                    className="absolute left-0 right-0 pointer-events-none"
+                    className="absolute left-0 right-0 border-t border-dashed border-gray-200 dark:border-gray-800 pointer-events-none"
                     style={{
                       top: (h - firstHour + 0.5) * SLOT_H,
-                      borderTop: '1px dashed var(--color-border-tertiary, #D1D5DB)',
                       zIndex: 0,
                     }}
                   />
@@ -135,6 +136,11 @@ export default function WeekGrid({ schedule, courseColorMap }) {
                     style={{ top: (h - firstHour) * SLOT_H }}
                   />
                 ))}
+                {/* Closing hour line */}
+                <div
+                  className="absolute left-0 right-0 border-t border-border dark:border-border-dark"
+                  style={{ top: totalH * SLOT_H }}
+                />
                 {/* Section blocks */}
                 {(sectionsByDay[abbrev] || []).map((sec, i) => {
                   const top = (parseTime(sec.start_time) - firstHour) * SLOT_H
