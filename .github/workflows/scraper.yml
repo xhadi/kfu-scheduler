@@ -15,8 +15,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
-      - run: pip3 install -r backend/requirements.txt
-      - run: python3 backend/run_scraper.py
+      - run: |
+          python3 -m venv venv
+          source venv/bin/activate 
+          pip install -r backend/requirements.txt
+          python backend/run_scraper.py
         env:
           TERM_CODE: ${{ github.event.inputs.term_code || vars.TERM_CODE }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
