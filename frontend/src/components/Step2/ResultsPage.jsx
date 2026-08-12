@@ -17,12 +17,14 @@ export default function ResultsPage() {
   const { results, filteredOptions, goBack, courseColorMap } = useSchedule()
   const { text } = useUiText()
   const [page, setPage] = useState(0)
-  const [windowStart, setWindowStart] = useState(0)
 
   const totalPages = Math.ceil(filteredOptions.length / PAGE_SIZE)
   const safePage = totalPages === 0 ? 0 : Math.min(page, totalPages - 1)
   const pageOptions = filteredOptions.slice(safePage * PAGE_SIZE, (safePage + 1) * PAGE_SIZE)
 
+  // Keep the visible window centered on the current page so the active page
+  // is never hidden by window navigation.
+  const windowStart = Math.max(0, Math.min(safePage - Math.floor(WINDOW / 2), totalPages - WINDOW))
   const visiblePages = Array.from({ length: Math.min(WINDOW, totalPages) }, (_, i) => windowStart + i)
 
   if (!results || results.total_options_found === 0) {
@@ -87,13 +89,6 @@ export default function ResultsPage() {
           >
             <ChevronLeft size={16} />
           </button>
-          <button
-            onClick={() => setWindowStart(w => Math.max(0, w - WINDOW))}
-            disabled={windowStart === 0}
-            className="px-2 py-1 text-sm rounded border border-border dark:border-border-dark disabled:opacity-30 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-          >
-            ...
-          </button>
           {visiblePages.map(i => (
             <button
               key={i}
@@ -107,13 +102,6 @@ export default function ResultsPage() {
               {i + 1}
             </button>
           ))}
-          <button
-            onClick={() => setWindowStart(w => Math.min(totalPages - WINDOW, w + WINDOW))}
-            disabled={windowStart >= totalPages - WINDOW}
-            className="px-2 py-1 text-sm rounded border border-border dark:border-border-dark disabled:opacity-30 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-          >
-            ...
-          </button>
           <button
             onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
             disabled={safePage === totalPages - 1}
@@ -150,13 +138,6 @@ export default function ResultsPage() {
           >
             <ChevronLeft size={16} />
           </button>
-          <button
-            onClick={() => setWindowStart(w => Math.max(0, w - WINDOW))}
-            disabled={windowStart === 0}
-            className="px-2 py-1 text-sm rounded border border-border dark:border-border-dark disabled:opacity-30 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-          >
-            ...
-          </button>
           {visiblePages.map(i => (
             <button
               key={i}
@@ -170,13 +151,6 @@ export default function ResultsPage() {
               {i + 1}
             </button>
           ))}
-          <button
-            onClick={() => setWindowStart(w => Math.min(totalPages - WINDOW, w + WINDOW))}
-            disabled={windowStart >= totalPages - WINDOW}
-            className="px-2 py-1 text-sm rounded border border-border dark:border-border-dark disabled:opacity-30 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-          >
-            ...
-          </button>
           <button
             onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
             disabled={safePage === totalPages - 1}
