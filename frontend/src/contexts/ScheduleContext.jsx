@@ -52,14 +52,20 @@ export function ScheduleProvider({ children }) {
       }
 
       if (filters.instructors.size > 0) {
-        if (!schedule.sections.some(s => filters.instructors.has(s.teacher))) {
-          return false
+        const scheduleTeachers = new Set(schedule.sections.map(s => s.teacher).filter(Boolean))
+        for (const teacher of filters.instructors) {
+          if (!scheduleTeachers.has(teacher)) {
+            return false
+          }
         }
       }
 
       if (filters.crns.size > 0) {
-        if (!schedule.sections.some(s => filters.crns.has(String(s.crn)))) {
-          return false
+        const scheduleCrns = new Set(schedule.sections.map(s => String(s.crn)))
+        for (const crn of filters.crns) {
+          if (!scheduleCrns.has(crn)) {
+            return false
+          }
         }
       }
 
