@@ -4,6 +4,13 @@ import { fetchScrapeStatus } from '../api/scheduleApi'
 const CACHE_KEY = 'kfu-scrape-status'
 const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
 
+export function parseUtcDate(dateStr) {
+  if (!dateStr) return null
+  if (dateStr instanceof Date) return dateStr
+  const hasTimezone = dateStr.endsWith('Z') || /[+-]\d{2}(?::?\d{2})?$/.test(dateStr)
+  return new Date(hasTimezone ? dateStr : `${dateStr}Z`)
+}
+
 function getCachedStatus() {
   try {
     const cached = sessionStorage.getItem(CACHE_KEY)
@@ -11,7 +18,7 @@ function getCachedStatus() {
       const { data, timestamp } = JSON.parse(cached)
       if (Date.now() - timestamp < CACHE_TTL) {
         return {
-          lastUpdate: data.last_update ? new Date(data.last_update) : null,
+          lastUpdate: parseUtcDate(data.last_update),
           status: data.status,
         }
       }
@@ -43,7 +50,7 @@ export function useScrapeStatus() {
       try {
         const data = await fetchScrapeStatus()
         if (cancelled) return
-        setLastUpdate(data.last_update ? new Date(data.last_update) : null)
+        setLastUpdate(parseUtcDate(data.last_update))
         setStatus(data.status)
         setError(null)
 

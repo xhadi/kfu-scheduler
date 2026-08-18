@@ -45,6 +45,10 @@ class TestScrapingStatus(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertIsNotNone(data["last_update"])
+        self.assertTrue(
+            data["last_update"].endswith("+00:00") or data["last_update"].endswith("Z"),
+            f"Expected UTC timezone suffix, got: {data['last_update']}"
+        )
         self.assertEqual(data["status"], "completed")
 
 
