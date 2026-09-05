@@ -7,10 +7,11 @@ import GenderSelector from './GenderSelector'
 import CourseSearch from './CourseSearch'
 import WantedList from './WantedList'
 import LoadingModal from './LoadingModal'
+import NoScheduleModal from './NoScheduleModal'
 import CatalogLoader from './CatalogLoader'
 
 export default function CourseSelectionPage() {
-  const { gender, selectedCourses, handleGenerate, loading, error } = useSchedule()
+  const { gender, selectedCourses, handleGenerate, loading, error, showNoScheduleModal } = useSchedule()
   const { text } = useUiText()
   const { colleges, loading: catalogLoading, error: catalogError, searchCourses, retry } = useCourseCatalog()
   const [collegesExpanded, setCollegesExpanded] = useState(false)
@@ -19,6 +20,7 @@ export default function CourseSelectionPage() {
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
       {loading && <LoadingModal />}
+      {showNoScheduleModal && <NoScheduleModal />}
       <h2 className="text-xl font-extrabold text-center mb-6 text-gray-800 dark:text-gray-100">{text('selectGender')}</h2>
       <GenderSelector />
       <div className="mt-6">
