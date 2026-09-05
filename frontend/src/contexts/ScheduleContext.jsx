@@ -19,12 +19,17 @@ export function ScheduleProvider({ children }) {
   const [error, setError] = useState(null)
   const [currentScheduleIndex, setCurrentScheduleIndex] = useState(0)
   const [step, setStep] = useState(1)
+  const [showNoScheduleModal, setShowNoScheduleModal] = useState(false)
   const [filters, setFilters] = useState({
     daysOff: new Set(),
     instructors: new Set(),
     crns: new Set(),
     availability: 'all',
   })
+
+  const closeNoScheduleModal = useCallback(() => {
+    setShowNoScheduleModal(false)
+  }, [])
 
   /**
    * Client-side filtered list of generated schedules.
@@ -87,11 +92,16 @@ export function ScheduleProvider({ children }) {
   const handleGenerate = useCallback(async (courseIds) => {
     setLoading(true)
     setError(null)
+    setShowNoScheduleModal(false)
     try {
       const data = await generateSchedules(courseIds, gender)
-      setResults(data)
-      setCurrentScheduleIndex(0)
-      setStep(2)
+      if (!data.options || data.options.length === 0) {
+        setShowNoScheduleModal(true)
+      } else {
+        setResults(data)
+        setCurrentScheduleIndex(0)
+        setStep(2)
+      }
     } catch (err) {
       setError(err.message)
     } finally {
@@ -103,6 +113,7 @@ export function ScheduleProvider({ children }) {
     setStep(1)
     setError(null)
     setResults(null)
+    setShowNoScheduleModal(false)
     setFilters({ daysOff: new Set(), instructors: new Set(), crns: new Set(), availability: 'all' })
     setCurrentScheduleIndex(0)
   }, [])
@@ -131,6 +142,7 @@ export function ScheduleProvider({ children }) {
       handleGenerate, goBack,
       filters, setFilters, filteredOptions,
       courseColorMap,
+      showNoScheduleModal, closeNoScheduleModal,
     }}>
       {children}
     </ScheduleContext.Provider>
