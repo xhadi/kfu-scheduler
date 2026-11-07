@@ -9,6 +9,7 @@ import sys
 from pathlib import Path
 from typing import List, Dict, Set
 from sqlmodel import Session, SQLModel, delete, col, select
+from sqlalchemy import tuple_
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))
@@ -97,11 +98,10 @@ def _bulk_upsert(session, model, rows: list, index_elements: list, update_column
 def sync_sections_to_db(sections: List[SectionData], source_used: str, db_engine=engine):
     """
     Atomically upsert colleges, departments, courses, and sections.
-    Purges CRNs not present in the current run.
+    Purges sections whose (crn, section_number, course_id) key is not in the current run.
     """
     unique_colleges, unique_departments, unique_courses, unique_sections = _dedup_sections(sections)
 
-    active_crns = {item.crn for item in sections}
     use_bulk = _is_postgresql(db_engine)
 
     with Session(db_engine) as session:
@@ -144,7 +144,15 @@ def sync_sections_to_db(sections: List[SectionData], source_used: str, db_engine
                 for section in unique_sections.values():
                     session.merge(section)
 
-            session.exec(delete(Section).where(Section.crn.not_in(active_crns)))
+            # Purge by full composite key: KFU reuses CRNs across terms for different courses/sections
+            existing_keys = set(session.exec(
+                select(Section.crn, Section.section_number, Section.course_id)
+            ).all())
+            stale_keys = list(existing_keys - set(unique_sections.keys()))
+            for i in range(0, len(stale_keys), 500):
+                session.exec(delete(Section).where(
+                    tuple_(Section.crn, Section.section_number, Section.course_id).in_(stale_keys[i:i + 500])
+                ))
 
 
 def load_data_to_db(json_file_path: str | Path):

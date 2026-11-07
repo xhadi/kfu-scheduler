@@ -60,6 +60,16 @@ class TestLoadData(unittest.TestCase):
             self.assertIsNotNone(session.get(Section, ("22222", "01", "0911-101")))
             self.assertIsNotNone(session.get(Section, ("33333", "01", "0911-101")))
 
+    def test_purge_reused_crn_with_different_key(self):
+        sync_sections_to_db([make_section("11111", dept_code="0911")], source_used="static_html", db_engine=self.engine)
+
+        # KFU reuses CRNs across terms, so the same CRN can come back under another course
+        sync_sections_to_db([make_section("11111", dept_code="0912")], source_used="static_html", db_engine=self.engine)
+
+        with Session(self.engine) as session:
+            self.assertIsNone(session.get(Section, ("11111", "01", "0911-101")))
+            self.assertIsNotNone(session.get(Section, ("11111", "01", "0912-101")))
+
     def test_preserves_existing_dept_name(self):
         sections_v1 = [make_section("11111", dept_code="0911", dept_name="علوم الحاسب")]
         sync_sections_to_db(sections_v1, source_used="static_html", db_engine=self.engine)
