@@ -7,8 +7,8 @@ and atomically purges stale section records not present in the current scrape ru
 import json
 import sys
 from pathlib import Path
-from typing import List
-from sqlmodel import Session, delete, col, select
+from typing import List, NamedTuple
+from sqlmodel import Session, delete, col, select, func
 from sqlalchemy import tuple_
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
@@ -17,6 +17,7 @@ sys.path.append(str(Path(__file__).resolve().parent.parent))
 from database import engine
 from models import College, Department, Course, Section
 from schemas import SectionData
+from scraper import config
 
 
 
@@ -95,10 +96,19 @@ def _bulk_upsert(session, model, rows: list, index_elements: list, update_column
     session.execute(stmt)
 
 
-def sync_sections_to_db(sections: List[SectionData], source_used: str, db_engine=engine):
+class SyncResult(NamedTuple):
+    purged: bool
+    existing_sections: int
+    new_sections: int
+
+
+def sync_sections_to_db(sections: List[SectionData], source_used: str, db_engine=engine,
+                        force_purge: bool = False,
+                        min_ratio: float = config.PURGE_MIN_RATIO) -> SyncResult:
     """
-    Atomically upsert colleges, departments, courses, and sections.
-    Purges sections, courses, departments, and colleges not present in the current run.
+    Atomically upsert colleges, departments, courses, and sections, then purge rows not in this run.
+    The purge is skipped when the run is much smaller than the DB (likely a partial scrape),
+    unless force_purge is set. Upserts always apply.
     """
     unique_colleges, unique_departments, unique_courses, unique_sections = _dedup_sections(sections)
 
@@ -106,6 +116,10 @@ def sync_sections_to_db(sections: List[SectionData], source_used: str, db_engine
 
     with Session(db_engine) as session:
         with session.begin():
+            existing_count = session.exec(select(func.count()).select_from(Section)).one()
+            new_count = len(unique_sections)
+            purge = force_purge or new_count >= existing_count * min_ratio
+
             if use_bulk:
                 # Preserve existing dept names for empty entries before bulk upsert.
                 dept_ids = [d.id for d in unique_departments.values() if not d.name]
@@ -144,15 +158,18 @@ def sync_sections_to_db(sections: List[SectionData], source_used: str, db_engine
                 for section in unique_sections.values():
                     session.merge(section)
 
-            # Purge everything not in this run, children first to satisfy foreign keys.
-            # Sections use the full composite key: KFU reuses CRNs across terms for different courses.
-            _purge_stale(session, Section,
-                         (Section.crn, Section.section_number, Section.course_id),
-                         unique_sections.keys())
-            # Courses offered only in an earlier term have no sections left, so drop them too.
-            _purge_stale(session, Course, (Course.id,), unique_courses.keys())
-            _purge_stale(session, Department, (Department.id,), unique_departments.keys())
-            _purge_stale(session, College, (College.id,), unique_colleges.keys())
+            if purge:
+                # Purge everything not in this run, children first to satisfy foreign keys.
+                # Sections use the full composite key: KFU reuses CRNs across terms for different courses.
+                _purge_stale(session, Section,
+                             (Section.crn, Section.section_number, Section.course_id),
+                             unique_sections.keys())
+                # Courses offered only in an earlier term have no sections left, so drop them too.
+                _purge_stale(session, Course, (Course.id,), unique_courses.keys())
+                _purge_stale(session, Department, (Department.id,), unique_departments.keys())
+                _purge_stale(session, College, (College.id,), unique_colleges.keys())
+
+    return SyncResult(purged=purge, existing_sections=existing_count, new_sections=new_count)
 
 
 def _purge_stale(session, model, key_columns: tuple, current_keys, chunk_size: int = 500):

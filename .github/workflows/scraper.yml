@@ -8,6 +8,10 @@ on:
       term_code:
         description: "Term code override (e.g., 144810)"
         required: false
+      force_purge:
+        description: "Delete stale courses even if this run is much smaller than the DB"
+        type: boolean
+        default: false
 
 jobs:
   scrape:
@@ -26,3 +30,4 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           ADMIN_CHAT_ID: ${{ secrets.ADMIN_CHAT_ID }}
           MIN_SECTIONS_THRESHOLD: ${{ vars.MIN_SECTIONS_THRESHOLD || '1000' }}
+          FORCE_PURGE: ${{ github.event.inputs.force_purge || 'false' }}

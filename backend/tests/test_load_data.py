@@ -125,6 +125,46 @@ class TestLoadData(unittest.TestCase):
             self.assertEqual(session.get(Course, "0911-101").title, "مبادئ البرمجة")
             self.assertEqual(session.get(Section, ("11111", "01", "0911-101")).teacher, "محمد")
 
+    def _seed_four_sections(self):
+        sync_sections_to_db(
+            [make_section(crn) for crn in ("11111", "22222", "33333", "44444")],
+            source_used="static_html", db_engine=self.engine,
+        )
+
+    def test_guard_skips_purge_when_run_is_much_smaller(self):
+        self._seed_four_sections()
+
+        # A partial scrape (1 of 4) must not wipe the other sections
+        changed = make_section("11111")
+        changed.teacher = "محمد"
+        result = sync_sections_to_db([changed], source_used="dynamic_api", db_engine=self.engine)
+
+        self.assertFalse(result.purged)
+        with Session(self.engine) as session:
+            self.assertIsNotNone(session.get(Section, ("44444", "01", "0911-101")))
+            # Updates from the partial run are still applied
+            self.assertEqual(session.get(Section, ("11111", "01", "0911-101")).teacher, "محمد")
+
+    def test_force_purge_overrides_guard(self):
+        self._seed_four_sections()
+
+        result = sync_sections_to_db([make_section("11111")], source_used="static_html",
+                                     db_engine=self.engine, force_purge=True)
+
+        self.assertTrue(result.purged)
+        with Session(self.engine) as session:
+            self.assertIsNone(session.get(Section, ("44444", "01", "0911-101")))
+
+    def test_guard_allows_normal_shrink(self):
+        self._seed_four_sections()
+
+        result = sync_sections_to_db([make_section(c) for c in ("11111", "22222", "33333")],
+                                     source_used="static_html", db_engine=self.engine)
+
+        self.assertTrue(result.purged)
+        with Session(self.engine) as session:
+            self.assertIsNone(session.get(Section, ("44444", "01", "0911-101")))
+
 
 if __name__ == "__main__":
     unittest.main()
