@@ -16,21 +16,29 @@ load_dotenv(Path(__file__).resolve().parent / ".env")
 
 # 1. Define the Database URL
 BASE_DIR = Path(__file__).resolve().parent
-raw_url = os.getenv("DATABASE_URL", "").strip()
 
-# Remove surrounding quotes if present in env var or GitHub Secret
-if (raw_url.startswith('"') and raw_url.endswith('"')) or (raw_url.startswith("'") and raw_url.endswith("'")):
-    raw_url = raw_url[1:-1].strip()
 
-# Fallback to local SQLite if DATABASE_URL is not set or empty
-if not raw_url:
-    DATABASE_URL = f"sqlite:///{BASE_DIR}/courses.db"
-else:
-    DATABASE_URL = raw_url
+def normalize_database_url(raw_url: str) -> str:
+    """Turn the DATABASE_URL env value into a SQLAlchemy URL with an explicit driver."""
+    url = raw_url.strip()
 
-# Fix for Render/Supabase legacy postgres:// protocol string
-if DATABASE_URL.startswith("postgres://"):
-    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+    # Remove surrounding quotes if present in env var or GitHub Secret
+    if (url.startswith('"') and url.endswith('"')) or (url.startswith("'") and url.endswith("'")):
+        url = url[1:-1].strip()
+
+    # Fallback to local SQLite if DATABASE_URL is not set or empty
+    if not url:
+        return f"sqlite:///{BASE_DIR}/courses.db"
+
+    # Pin the psycopg2 driver: SQLAlchemy 2.1 maps a bare postgresql:// (and the
+    # legacy postgres:// Render/Supabase use) to psycopg v3, which isn't installed.
+    for prefix in ("postgres://", "postgresql://"):
+        if url.startswith(prefix):
+            return "postgresql+psycopg2://" + url[len(prefix):]
+    return url
+
+
+DATABASE_URL = normalize_database_url(os.getenv("DATABASE_URL", ""))
 
 
 # 2. Create the SQLModel Engine

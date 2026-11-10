@@ -7,8 +7,29 @@ sys.path.append(str(Path(__file__).resolve().parent.parent))
 from sqlalchemy import inspect, text
 from sqlmodel import SQLModel, create_engine
 
-from database import init_db
+from database import init_db, normalize_database_url
 import models  # noqa: F401
+
+
+class TestNormalizeDatabaseUrl(unittest.TestCase):
+    def test_pins_psycopg2_for_postgresql_scheme(self):
+        self.assertEqual(normalize_database_url("postgresql://u:p@h:6543/db"),
+                         "postgresql+psycopg2://u:p@h:6543/db")
+
+    def test_pins_psycopg2_for_legacy_postgres_scheme(self):
+        self.assertEqual(normalize_database_url("postgres://u:p@h/db"),
+                         "postgresql+psycopg2://u:p@h/db")
+
+    def test_keeps_explicit_driver(self):
+        self.assertEqual(normalize_database_url("postgresql+psycopg2://u:p@h/db"),
+                         "postgresql+psycopg2://u:p@h/db")
+
+    def test_strips_quotes(self):
+        self.assertEqual(normalize_database_url(' "postgresql://u:p@h/db" '),
+                         "postgresql+psycopg2://u:p@h/db")
+
+    def test_empty_falls_back_to_sqlite(self):
+        self.assertTrue(normalize_database_url("").startswith("sqlite:///"))
 
 
 def index_names(engine, table):
