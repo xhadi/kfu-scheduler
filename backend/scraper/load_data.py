@@ -7,8 +7,8 @@ and atomically purges stale section records not present in the current scrape ru
 import json
 import sys
 from pathlib import Path
-from typing import List, Dict, Set
-from sqlmodel import Session, SQLModel, delete, col, select
+from typing import List
+from sqlmodel import Session, delete, col, select
 from sqlalchemy import tuple_
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
@@ -98,7 +98,7 @@ def _bulk_upsert(session, model, rows: list, index_elements: list, update_column
 def sync_sections_to_db(sections: List[SectionData], source_used: str, db_engine=engine):
     """
     Atomically upsert colleges, departments, courses, and sections.
-    Purges sections whose (crn, section_number, course_id) key is not in the current run.
+    Purges sections, courses, departments, and colleges not present in the current run.
     """
     unique_colleges, unique_departments, unique_courses, unique_sections = _dedup_sections(sections)
 
@@ -144,15 +144,27 @@ def sync_sections_to_db(sections: List[SectionData], source_used: str, db_engine
                 for section in unique_sections.values():
                     session.merge(section)
 
-            # Purge by full composite key: KFU reuses CRNs across terms for different courses/sections
-            existing_keys = set(session.exec(
-                select(Section.crn, Section.section_number, Section.course_id)
-            ).all())
-            stale_keys = list(existing_keys - set(unique_sections.keys()))
-            for i in range(0, len(stale_keys), 500):
-                session.exec(delete(Section).where(
-                    tuple_(Section.crn, Section.section_number, Section.course_id).in_(stale_keys[i:i + 500])
-                ))
+            # Purge everything not in this run, children first to satisfy foreign keys.
+            # Sections use the full composite key: KFU reuses CRNs across terms for different courses.
+            _purge_stale(session, Section,
+                         (Section.crn, Section.section_number, Section.course_id),
+                         unique_sections.keys())
+            # Courses offered only in an earlier term have no sections left, so drop them too.
+            _purge_stale(session, Course, (Course.id,), unique_courses.keys())
+            _purge_stale(session, Department, (Department.id,), unique_departments.keys())
+            _purge_stale(session, College, (College.id,), unique_colleges.keys())
+
+
+def _purge_stale(session, model, key_columns: tuple, current_keys, chunk_size: int = 500):
+    """Delete rows of `model` whose key is not among `current_keys`."""
+    composite = len(key_columns) > 1
+    # A single-column select returns plain values; a multi-column one returns rows.
+    rows = session.exec(select(*key_columns)).all()
+    existing = {tuple(r) for r in rows} if composite else set(rows)
+    stale = list(existing - set(current_keys))
+    key_expr = tuple_(*key_columns) if composite else key_columns[0]
+    for i in range(0, len(stale), chunk_size):
+        session.exec(delete(model).where(key_expr.in_(stale[i:i + chunk_size])))
 
 
 def load_data_to_db(json_file_path: str | Path):

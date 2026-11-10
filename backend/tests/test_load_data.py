@@ -85,6 +85,46 @@ class TestLoadData(unittest.TestCase):
             dept = session.get(Department, "0911")
             self.assertEqual(dept.name, "علوم الحاسب")
 
+    def test_purge_course_not_offered_in_new_run(self):
+        sync_sections_to_db(
+            [make_section("11111", dept_code="0911"), make_section("22222", dept_code="0912")],
+            source_used="static_html", db_engine=self.engine,
+        )
+
+        # 0912-101 is not offered this term, so it must leave the catalog
+        sync_sections_to_db([make_section("11111", dept_code="0911")], source_used="static_html", db_engine=self.engine)
+
+        with Session(self.engine) as session:
+            self.assertIsNotNone(session.get(Course, "0911-101"))
+            self.assertIsNone(session.get(Course, "0912-101"))
+            self.assertIsNone(session.get(Section, ("22222", "01", "0912-101")))
+            self.assertIsNone(session.get(Department, "0912"))
+            self.assertIsNotNone(session.get(Department, "0911"))
+
+    def test_purge_college_with_no_courses(self):
+        sync_sections_to_db(
+            [make_section("11111", dept_code="0911"), make_section("22222", dept_code="0411")],
+            source_used="static_html", db_engine=self.engine,
+        )
+
+        sync_sections_to_db([make_section("11111", dept_code="0911")], source_used="static_html", db_engine=self.engine)
+
+        with Session(self.engine) as session:
+            self.assertIsNotNone(session.get(College, "09"))
+            self.assertIsNone(session.get(College, "04"))
+
+    def test_updates_changed_course_and_section_fields(self):
+        sync_sections_to_db([make_section("11111")], source_used="static_html", db_engine=self.engine)
+
+        changed = make_section("11111")
+        changed.course_title = "مبادئ البرمجة"
+        changed.teacher = "محمد"
+        sync_sections_to_db([changed], source_used="static_html", db_engine=self.engine)
+
+        with Session(self.engine) as session:
+            self.assertEqual(session.get(Course, "0911-101").title, "مبادئ البرمجة")
+            self.assertEqual(session.get(Section, ("11111", "01", "0911-101")).teacher, "محمد")
+
 
 if __name__ == "__main__":
     unittest.main()
