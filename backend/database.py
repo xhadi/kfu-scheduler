@@ -51,6 +51,22 @@ else:
         echo=False
     )
 
+def init_db(db_engine=None) -> None:
+    """
+    Create missing tables, then any indexes missing from tables that already exist.
+    create_all skips existing tables entirely, so indexes added to models later
+    would never reach a live database without the second step.
+    """
+    from sqlmodel import SQLModel
+    import models  # noqa: F401  registers tables on SQLModel.metadata
+
+    db_engine = db_engine or engine
+    SQLModel.metadata.create_all(db_engine)
+    for table in SQLModel.metadata.sorted_tables:
+        for index in table.indexes:
+            index.create(bind=db_engine, checkfirst=True)
+
+
 # 3. Create a Dependency for FastAPI Routes
 def get_db_session() -> Generator[Session, None, None]:
     """

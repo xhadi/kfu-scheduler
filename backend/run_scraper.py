@@ -10,19 +10,19 @@ from datetime import datetime, timezone
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from database import engine
+from database import engine, init_db
 from models import ScrapeStatus
 from scraper import config
 from scraper.pipeline import Pipeline, PipelineError
 from scraper.load_data import sync_sections_to_db
 from utils import send_telegram_alert
-from sqlmodel import Session, SQLModel
+from sqlmodel import Session
 
 
 def main():
     """Execute the scraping pipeline, sync results to database, and log run status."""
 
-    SQLModel.metadata.create_all(engine)
+    init_db()
 
     parser = argparse.ArgumentParser(description="KFU Course Scraper CLI")
     parser.add_argument("--term", default=config.DEFAULT_TERM_CODE, help="Term code, e.g., 144810")

@@ -1,7 +1,7 @@
 from typing import List, Optional
 from datetime import datetime
 from sqlmodel import Field, Relationship, SQLModel
-from sqlalchemy import Column, Integer
+from sqlalchemy import Column, Index, Integer
 
 
 # --- TABLES ---
@@ -26,6 +26,9 @@ class Department(SQLModel, table=True):
 
 class Course(SQLModel, table=True):
     """Represents a course offered by a department (e.g. '0921-120')."""
+    # Course list endpoint filters by department_id; Postgres doesn't index FKs automatically.
+    __table_args__ = (Index("idx_course_department", "department_id"),)
+
     id: str = Field(primary_key=True)  # Example: "0921-120"
     title: str                         # Example: "مباديء البرمجة"
     hours: int                         # Example: 4
@@ -41,6 +44,10 @@ class Section(SQLModel, table=True):
     Uses composite Primary Key (crn, section_number, course_id).
     `time_slots` is stored as a JSON string: [{"day":"ح","start":"09:00","end":"10:15"}].
     """
+    # Schedule generator filters by course_id, which is the last PK column,
+    # so the primary key index can't serve that lookup.
+    __table_args__ = (Index("idx_section_course", "course_id"),)
+
     crn: str = Field(primary_key=True)
     section_number: str = Field(primary_key=True)
     section_type: str = Field(nullable=True)

@@ -1,11 +1,10 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from sqlmodel import SQLModel
 
 # Import database and models BEFORE the lifespan runs to avoid the import trap
-from database import engine
-import models 
+from database import init_db
+import models  # noqa: F401
 
 # Import our newly built routers
 from routers import colleges, schedules, scrape_status
@@ -13,8 +12,8 @@ from routers import colleges, schedules, scrape_status
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("Initializing database tables...")
-    # This safely builds your tables the moment you start the server
-    SQLModel.metadata.create_all(engine)
+    # Builds missing tables and indexes the moment you start the server
+    init_db()
     yield
 
 app = FastAPI(title="KFU Schedule Maker API", lifespan=lifespan)
