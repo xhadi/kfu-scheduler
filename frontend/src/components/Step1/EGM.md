@@ -6,6 +6,11 @@ Step 1 of the two-step flow: choose gender, search the catalog, build the
 wanted-course list, and trigger schedule generation. `CourseSelectionPage` is
 the entry component. The other files are its children.
 
+## Why
+
+- `CatalogLoader` exists because the Render free-tier backend sleeps after about 15 minutes idle and the first request takes about 50 s. Without feedback the empty search box looked broken, so after 3 s it shows a wake-up card with a countdown.
+- The supported-colleges list is shown under the generate button because users could not tell which colleges were covered before generating.
+
 ## Interface
 
 - `CourseSelectionPage` (default export) [CourseSelectionPage.jsx:CourseSelectionPage]:

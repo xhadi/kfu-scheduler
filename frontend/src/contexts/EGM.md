@@ -7,6 +7,10 @@ light/dark theme. `UiTextContext` provides Arabic UI strings and the fixed RTL
 direction. `ScheduleContext` holds the two-step workflow state: gender,
 selected courses, generated results, filters, and step navigation.
 
+## Why
+
+- `handleGenerate` stays on step 1 and opens the no-schedule modal when the result is empty. Before this, users landed on an empty step 2 with no easy way back; staying on step 1 keeps their course selection intact.
+
 ## Interface
 
 - `ThemeProvider` / `useTheme()` [ThemeContext.jsx:ThemeProvider, useTheme]:

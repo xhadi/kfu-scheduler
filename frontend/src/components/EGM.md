@@ -5,6 +5,10 @@
 All UI components. `Header` and `Footer` frame every page. `Step1/` and
 `Step2/` hold the two screens of the course-selection → results flow.
 
+## Why
+
+- `Footer` shows the last scrape time so users can judge how fresh the course data is.
+
 ## Interface
 
 - `Header` (default export) [Header.jsx:Header]: app title link to `/` and a

@@ -7,6 +7,11 @@ entry component. It renders `FilterBar` for client-side filters, then a
 paginated vertical list of `ScheduleCard` timetables. Each card holds a
 Sunday-to-Thursday `WeekGrid` of `TimetableBlock` section blocks.
 
+## Why
+
+- The result count uses `filteredOptions.length`, not `total_options_found`, so it updates as filters are applied.
+- `WeekGrid` positions each hour label absolutely on its solid hour line and adds `:30` markers; the earlier translated label blocks drifted onto the half-hour lines.
+
 ## Interface
 
 - `ResultsPage` (default export) [ResultsPage.jsx:ResultsPage]: reads

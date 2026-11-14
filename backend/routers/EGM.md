@@ -14,6 +14,13 @@ All routes get a SQLModel `Session` through `Depends(get_db_session)` from
 `backend/database.py`. The ORM models (`College`, `Department`, `Course`,
 `Section`, `ScrapeStatus`) live in `backend/models.py`.
 
+## Why
+
+- Sections are filtered by gender before bundling, which roughly halves the bundles per course; mixing genders doubled the search space.
+- Courses are sorted fewest-bundles-first (MRV) so impossible combinations are pruned early in the backtracking.
+- Bundle conflicts are computed once into the `(i, j, bi, bj)` matrix, so each backtracking step is a dict lookup instead of re-comparing every slot pair.
+- `GET /api/scraping/last-update` is public on purpose: the footer shows data freshness to every visitor. It replaced the old key-protected `/api/admin/scraping/status` route.
+
 ## Interface
 
 ### `colleges.py` (prefix `/api`, tag `University Structure`)

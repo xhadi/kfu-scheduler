@@ -83,6 +83,7 @@ There are no admin endpoints. Scraping is triggered only via the `run_scraper.py
 
 Each code folder has an `EGM.md` contract (Interface, Invariants, Side Effects, Verification); the root `EGM.md` is the system blueprint and links to all of them.
 - Read the folder's `EGM.md` before changing code there.
+- A contract's `## Why` section records design rationale taken from past specs; keep it accurate when the code changes.
 - When a change alters a folder's public symbols, routes, invariants, or side effects, update that folder's `EGM.md` in the same commit.
 - Folders without a contract: `backend/tests/`, `backend/scraper/data/`, `frontend/public/`, `frontend/src/assets/`.
 - Human-facing docs stay in `README.md`, `backend/Readme.md`, `frontend/Readme.md`.

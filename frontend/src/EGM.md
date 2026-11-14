@@ -7,6 +7,10 @@ Source root of the React 19 + Vite single-page app. `main.jsx` mounts `App`.
 by `ScheduleContext.step`. There is no router. `uiText.js` holds every Arabic
 UI string.
 
+## Why
+
+- There is no router or state library: the app has only two steps, and React Context is enough to share state between them.
+
 ## Interface
 
 - `main.jsx` [main.jsx]: `createRoot(document.getElementById('root'))` renders

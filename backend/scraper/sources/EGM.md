@@ -12,6 +12,11 @@ All imports are absolute (`from schemas import ...`,
 `from scraper import ...`), so `backend/` must be on `sys.path`. Run code from
 `backend/`.
 
+## Why
+
+- The source-adapter split keeps the pipeline and loader source-agnostic, makes each source testable on its own, and leaves room for a third source.
+- `DynamicAPISource` is a thin wrapper so the working legacy `fetcher.py` needs no changes; it reuses the fetcher's JSON file as an intermediate artifact.
+
 ## Interface
 
 - `Source` (ABC) [base.py:Source]

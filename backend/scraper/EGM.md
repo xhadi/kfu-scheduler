@@ -19,6 +19,15 @@ Modules import `schemas`, `models`, `database`, and `utils` from `backend/`.
 Run code from `backend/`. `load_data.py` also adds `backend/` to `sys.path`
 itself.
 
+## Why
+
+- Scraping runs from the CLI and GitHub Actions, not inside FastAPI: Render's free tier spins the server down before a long background scrape can finish. The API only reads.
+- `COLLEGE_CODES` is derived from `fetcher.DEPARTMENT_MAP` so the static and dynamic sources cover exactly the same colleges.
+- Upsert and purge share one transaction so a failed run never leaves partial data or deletes valid rows.
+- Sections are purged by the full `(crn, section_number, course_id)` key because KFU reuses CRNs across terms; purging by CRN alone left previous-term rows behind.
+- The purge is skipped when a run is below `PURGE_MIN_RATIO` of the current count because the dynamic fallback silently skips failed departments, so a partial scrape could wipe valid courses. `--force-purge` exists for real drops, such as a smaller new term.
+- Warning alerts are throttled to one per 6 hours and successful runs send no alert, to avoid alert fatigue when the static page is down for a while. Critical alerts always go out.
+
 ## Interface
 
 - Sources subpackage: [./sources/EGM.md](./sources/EGM.md)
